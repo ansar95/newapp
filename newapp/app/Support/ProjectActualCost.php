@@ -1,0 +1,120 @@
+<?php
+
+namespace App\Support;
+
+use App\Enums\PaymentStatus;
+use App\Models\Boq;
+use App\Models\BoqCogs;
+use App\Models\BoqItem;
+use App\Models\Payment;
+use App\Models\PaymentAllocation;
+use App\Models\Project;
+
+/**
+ * Read-only actual cost of a project: confirmed BMHP allocations + PAID payment allocations.
+ */
+class ProjectActualCost
+{
+    /**
+     * @param  array<int, float>  $paymentItemActuals  keyed by boq_item_id
+     */
+    private function __construct(
+        public readonly Project $project,
+        public readonly BmhpActualCost $bmhp,
+        private readonly array $paymentItemActuals,
+        public readonly float $paidPaymentTotal,
+    ) {}
+
+    public static function forProject(Project $project): self
+    {
+        $paymentItemActuals = PaymentAllocation::query()
+            ->join('payments', 'payments.id', '=', 'payment_allocations.payment_id')
+            ->join('payment_plans', 'payment_plans.id', '=', 'payments.payment_plan_id')
+            ->join('boqs', 'boqs.id', '=', 'payment_plans.boq_id')
+            ->where('boqs.project_id', $project->id)
+            ->where('payments.status', PaymentStatus::Paid->value)
+            ->groupBy('payment_allocations.boq_item_id')
+            ->selectRaw('payment_allocations.boq_item_id, SUM(payment_allocations.allocated_amount) as actual_amount')
+            ->pluck('actual_amount', 'boq_item_id')
+            ->mapWithKeys(fn ($amount, $itemId) => [(int) $itemId => round((float) $amount, 2)])
+            ->all();
+
+        $paidPaymentTotal = (float) Payment::query()
+            ->where('status', PaymentStatus::Paid)
+            ->whereHas('paymentPlan.boq', fn ($query) => $query->where('project_id', $project->id))
+            ->sum('amount');
+
+        return new self(
+            $project,
+            BmhpActualCost::forProject($project),
+            $paymentItemActuals,
+            round($paidPaymentTotal, 2),
+        );
+    }
+
+    public function bmhpForItem(BoqItem|int $item): float
+    {
+        return $this->bmhp->forItem($item);
+    }
+
+    public function paymentForItem(BoqItem|int $item): float
+    {
+        $itemId = $item instanceof BoqItem ? $item->id : $item;
+
+        return $this->paymentItemActuals[$itemId] ?? 0.0;
+    }
+
+    public function forItem(BoqItem|int $item): float
+    {
+        return round($this->bmhpForItem($item) + $this->paymentForItem($item), 2);
+    }
+
+    public function bmhpForCogs(BoqCogs $cogs): float
+    {
+        return $this->bmhp->forCogs($cogs);
+    }
+
+    public function paymentForCogs(BoqCogs $cogs): float
+    {
+        $cogs->loadMissing('items');
+
+        return round((float) $cogs->items->sum(fn (BoqItem $item) => $this->paymentForItem($item)), 2);
+    }
+
+    public function forCogs(BoqCogs $cogs): float
+    {
+        return round($this->bmhpForCogs($cogs) + $this->paymentForCogs($cogs), 2);
+    }
+
+    public function forBoq(Boq $boq): float
+    {
+        $boq->loadMissing('cogs.items');
+
+        return round((float) $boq->cogs->sum(fn (BoqCogs $cogs) => $this->forCogs($cogs)), 2);
+    }
+
+    public function bmhpActual(): float
+    {
+        return $this->bmhp->projectActual();
+    }
+
+    public function paymentActual(): float
+    {
+        return round(array_sum($this->paymentItemActuals), 2);
+    }
+
+    public function projectActual(): float
+    {
+        return round($this->bmhpActual() + $this->paymentActual(), 2);
+    }
+
+    public static function variance(float $baseline, float $actual): float
+    {
+        return BmhpActualCost::variance($baseline, $actual);
+    }
+
+    public static function percentage(float $baseline, float $actual): float
+    {
+        return BmhpActualCost::percentage($baseline, $actual);
+    }
+}
