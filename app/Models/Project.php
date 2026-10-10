@@ -114,9 +114,9 @@ class Project extends Model
         return $this->hasMany(ProjectAsset::class);
     }
 
-    public function bmhpPurchases(): HasMany
+    public function procurementRequests(): HasMany
     {
-        return $this->hasMany(BmhpPurchase::class);
+        return $this->hasMany(ProcurementRequest::class);
     }
 
     public function terms(): HasMany

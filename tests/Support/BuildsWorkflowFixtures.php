@@ -8,11 +8,6 @@ use App\Actions\Billing\SaveProjectTerm;
 use App\Actions\Billing\SendClientBilling;
 use App\Actions\Billing\SetProjectTermReadiness;
 use App\Actions\Billing\SubmitClientBilling;
-use App\Actions\Bmhp\ConfirmBmhpPurchase;
-use App\Actions\Bmhp\CreateBmhpPurchase;
-use App\Actions\Bmhp\CreateMasterBmhp;
-use App\Actions\Bmhp\SaveBmhpPurchaseDetail;
-use App\Actions\Bmhp\SubmitBmhpPurchase;
 use App\Actions\BOQ\ConfirmBOQ;
 use App\Actions\BOQ\CreateBOQ;
 use App\Actions\BOQ\SubmitBOQ;
@@ -21,18 +16,22 @@ use App\Actions\Document\StartProjectDocumentReview;
 use App\Actions\Document\SubmitProjectDocument;
 use App\Actions\Payment\CreatePaymentPlan;
 use App\Actions\Payment\ProcessPayment;
+use App\Actions\Procurement\ApproveProcurementRequest;
+use App\Actions\Procurement\CreateProcurementRequest;
+use App\Actions\Procurement\PayProcurementRequest;
+use App\Actions\Procurement\SubmitProcurementRequest;
 use App\Actions\Project\ActivateProject;
 use App\Actions\Project\CreateProject;
 use App\Enums\PaymentPlanType;
+use App\Enums\ProcurementType;
 use App\Enums\ProjectTermCalculationType;
 use App\Enums\UserRole;
-use App\Models\BmhpPurchase;
 use App\Models\Boq;
 use App\Models\ClientBilling;
 use App\Models\ClientPayment;
 use App\Models\DocumentType;
-use App\Models\MasterBmhp;
 use App\Models\PaymentPlan;
+use App\Models\ProcurementRequest;
 use App\Models\Project;
 use App\Models\ProjectDocument;
 use App\Models\ProjectTerm;
@@ -134,44 +133,68 @@ trait BuildsWorkflowFixtures
     }
 
     /**
-     * @param  array<string, mixed>  $overrides
+     * @param  list<array<string, mixed>>|null  $items
      */
-    protected function makeMasterBmhp(User $actor, array $overrides = []): MasterBmhp
+    protected function makeDraftProcurementRequest(User $actor, Project $project, ProcurementType $type = ProcurementType::Bmhp, ?array $items = null): ProcurementRequest
     {
-        return app(CreateMasterBmhp::class)->handle($actor, array_merge([
-            'name' => 'Gypsum 9mm',
-            'category' => 'Material',
-            'unit' => 'Lembar',
-        ], $overrides));
+        return app(CreateProcurementRequest::class)->handle($actor, $project, [
+            'type' => $type->value,
+            'request_date' => now()->toDateString(),
+            'supplier' => 'PT ABC Material',
+            'items' => $items ?? [$this->procurementItemPayload($type)],
+        ]);
     }
 
     /**
-     * @param  list<array{0: MasterBmhp, 1: float|int, 2: float|int}>  $lines  [master, quantity, unit_price]
+     * @return array<string, mixed>
      */
-    protected function makeDraftBmhpPurchase(User $actor, Project $project, array $lines = []): BmhpPurchase
+    protected function procurementItemPayload(ProcurementType $type, float|int $quantity = 2, float|int $unitPrice = 50000, string $name = 'Gypsum 9mm'): array
     {
-        $purchase = app(CreateBmhpPurchase::class)->handle($actor, $project, [
-            'purchase_date' => now()->toDateString(),
-            'supplier' => 'PT ABC Material',
-            'invoice_number' => 'INV-001',
-        ]);
-
-        foreach ($lines as [$master, $quantity, $unitPrice]) {
-            app(SaveBmhpPurchaseDetail::class)->handle($actor, $purchase, [
-                'master_bmhp_id' => $master->id,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-            ]);
-        }
-
-        return $purchase->fresh(['details']);
+        return [
+            'item_name' => $name,
+            'unit' => $type === ProcurementType::Asset ? 'unit' : 'Lembar',
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'asset_category' => $type === ProcurementType::Asset ? 'Tools' : null,
+            'rental_start' => $type === ProcurementType::Rental ? now()->toDateString() : null,
+            'rental_end' => $type === ProcurementType::Rental ? now()->addDays(6)->toDateString() : null,
+        ];
     }
 
-    protected function submitAndConfirmBmhpPurchase(User $actor, BmhpPurchase $purchase): BmhpPurchase
+    protected function submitAndApproveProcurementRequest(User $requester, User $approver, ProcurementRequest $request): ProcurementRequest
     {
-        app(SubmitBmhpPurchase::class)->handle($actor, $purchase->fresh());
+        app(SubmitProcurementRequest::class)->handle($requester, $request->fresh());
 
-        return app(ConfirmBmhpPurchase::class)->handle($actor, $purchase->fresh());
+        return app(ApproveProcurementRequest::class)->handle($approver, $request->fresh());
+    }
+
+    /**
+     * @param  array<int, float|int>|null  $paidUnitPrices  keyed by item id; defaults to the requested unit price
+     */
+    protected function payProcurementRequest(User $finance, ProcurementRequest $request, ?array $paidUnitPrices = null): ProcurementRequest
+    {
+        $request = $request->fresh('items');
+
+        return app(PayProcurementRequest::class)->handle($finance, $request, [
+            'payment_date' => now()->toDateString(),
+            'invoice_number' => 'INV-'.$request->request_number,
+            'items' => $request->items->mapWithKeys(fn ($item) => [
+                $item->id => ['paid_unit_price' => $paidUnitPrices[$item->id] ?? (float) $item->unit_price],
+            ])->all(),
+        ]);
+    }
+
+    /**
+     * Creates, submits, approves and pays a request in one go, using a fresh approver and finance user.
+     *
+     * @param  list<array<string, mixed>>|null  $items
+     */
+    protected function makePaidProcurementRequest(User $requester, Project $project, ProcurementType $type = ProcurementType::Bmhp, ?array $items = null): ProcurementRequest
+    {
+        $request = $this->makeDraftProcurementRequest($requester, $project, $type, $items);
+        $this->submitAndApproveProcurementRequest($requester, $this->makeApprover(), $request);
+
+        return $this->payProcurementRequest($this->makeFinance(), $request);
     }
 
     /**

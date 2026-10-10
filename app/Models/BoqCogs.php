@@ -63,6 +63,20 @@ class BoqCogs extends Model
         return round((float) $this->items->sum(fn (BoqItem $item): float => (float) $item->total_price), 2);
     }
 
+    public function materialAmount(): float
+    {
+        $this->loadMissing('items');
+
+        return round((float) $this->items->sum(fn (BoqItem $item): float => $item->materialTotal()), 2);
+    }
+
+    public function serviceAmount(): float
+    {
+        $this->loadMissing('items');
+
+        return round((float) $this->items->sum(fn (BoqItem $item): float => $item->serviceTotal()), 2);
+    }
+
     public function progressPercentage(): float
     {
         $this->loadMissing('items');

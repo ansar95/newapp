@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Enums\BoqItemCategory;
 use App\Enums\BoqStatus;
 use App\Support\BoqCogsCsv;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Tests\Support\BuildsWorkflowFixtures;
 use Tests\TestCase;
 
@@ -29,7 +29,7 @@ class BoqCogsImportExportTest extends TestCase
         $content = $response->streamedContent();
 
         $this->assertStringContainsString('cogs_name,cogs_description,item_code,item_name', $content);
-        $this->assertStringContainsString('item_category', $content);
+        $this->assertStringNotContainsString('item_category', $content);
         $this->assertStringNotContainsString('cogs_code', $content);
         $this->assertStringContainsString('Engineering', $content);
         $this->assertStringContainsString('ITEM-E01', $content);
@@ -69,9 +69,9 @@ class BoqCogsImportExportTest extends TestCase
 
         $csv = BoqCogsCsv::rowsToCsv([
             BoqCogsCsv::HEADERS,
-            ['Keep', '', 'ITEM-KEEP', 'Existing', '', 'main_material', '1', 'ls', '1000000'],
-            ['Keep', '', 'ITEM-NEW', 'New Item', '', 'consumable', '2', 'm', '50000'],
-            ['Procurement', 'Materials', 'ITEM-P01', 'Panel', '', 'main_material', '1', 'set', '7500000'],
+            ['Keep', '', 'ITEM-KEEP', 'Existing', '', '1', 'ls', '1000000', '0'],
+            ['Keep', '', 'ITEM-NEW', 'New Item', '', '2', 'm', '50000', '0'],
+            ['Procurement', 'Materials', 'ITEM-P01', 'Panel', '', '1', 'set', '7500000', '0'],
         ]);
 
         $file = UploadedFile::fake()->createWithContent('cogs.csv', $csv);
@@ -89,35 +89,21 @@ class BoqCogsImportExportTest extends TestCase
             $boq->cogs->firstWhere('name', 'Keep')->items->contains(fn ($item) => $item->code === 'ITEM-NEW')
         );
         $this->assertSame('COGS-002', $boq->cogs->firstWhere('name', 'Procurement')->code);
-        $this->assertSame(
-            BoqItemCategory::Consumable,
-            $boq->cogs->firstWhere('name', 'Keep')->items->firstWhere('code', 'ITEM-NEW')->category
-        );
     }
 
-    public function test_can_create_item_with_category(): void
+    public function test_boq_items_no_longer_have_a_category(): void
     {
+        $this->assertFalse(Schema::hasColumn('boq_items', 'category'));
+
         $actor = $this->makeSuperadmin();
         $project = $this->makeActiveProject($actor, ['code' => 'PRJ-CAT']);
         $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-CAT');
-        $cogs = $boq->cogs->first();
 
         $this->actingAs($actor)
-            ->post(route('boqs.items.store', $cogs), [
-                'code' => 'ITEM-CONS',
-                'name' => 'Sealant',
-                'category' => 'consumable',
-                'quantity' => 5,
-                'unit' => 'tube',
-                'unit_price' => 75000,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('boq_items', [
-            'boq_cogs_id' => $cogs->id,
-            'code' => 'ITEM-CONS',
-            'category' => 'consumable',
-        ]);
+            ->get(route('boqs.show', $boq))
+            ->assertOk()
+            ->assertDontSee('Kategori')
+            ->assertDontSee('name="category"', false);
     }
 
     public function test_add_cogs_auto_generates_code(): void

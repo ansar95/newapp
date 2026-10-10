@@ -16,6 +16,7 @@
             <div class="text-right">
                 <x-status-badge :status="$boq->status" />
                 <p class="mt-2 text-lg font-semibold text-maroon-950"><x-money :amount="$boq->totalAmount()" /></p>
+                <p class="text-xs text-maroon-700">Material <x-money :amount="$boq->materialAmount()" /> · Jasa <x-money :amount="$boq->serviceAmount()" /></p>
             </div>
         </div>
 
@@ -24,7 +25,10 @@
                 <div class="rounded-lg border border-maroon-100 p-4">
                     <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                         <h3 class="font-semibold uppercase tracking-wide text-maroon-950">{{ $cogs->name }}</h3>
-                        <p class="text-sm font-medium">COGS TOTAL: <x-money :amount="$cogs->totalAmount()" /></p>
+                        <p class="text-sm font-medium">
+                            COGS TOTAL: <x-money :amount="$cogs->totalAmount()" />
+                            <span class="ml-1 text-xs font-normal text-maroon-700">Material <x-money :amount="$cogs->materialAmount()" /> · Jasa <x-money :amount="$cogs->serviceAmount()" /></span>
+                        </p>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
@@ -33,7 +37,9 @@
                                 <th class="py-1 pr-3">Item</th>
                                 <th class="py-1 pr-3">Qty</th>
                                 <th class="py-1 pr-3">Unit</th>
-                                <th class="py-1 pr-3">Unit Price</th>
+                                <th class="py-1 pr-3">Harga Material</th>
+                                <th class="py-1 pr-3">Harga Jasa</th>
+                                <th class="py-1 pr-3">Harga Satuan</th>
                                 <th class="py-1">Total</th>
                             </tr>
                             </thead>
@@ -43,6 +49,8 @@
                                     <td class="py-2 pr-3">{{ $item->name }} <span class="text-xs text-maroon-400">({{ $item->code }})</span></td>
                                     <td class="py-2 pr-3">{{ number_format((float) $item->quantity, 2) }}</td>
                                     <td class="py-2 pr-3">{{ $item->unit }}</td>
+                                    <td class="py-2 pr-3"><x-money :amount="$item->material_unit_price" /></td>
+                                    <td class="py-2 pr-3"><x-money :amount="$item->service_unit_price" /></td>
                                     <td class="py-2 pr-3"><x-money :amount="$item->unit_price" /></td>
                                     <td class="py-2 font-medium"><x-money :amount="$item->total_price" /></td>
                                 </tr>
@@ -58,6 +66,10 @@
             <div class="flex items-center justify-between">
                 <span class="text-sm uppercase tracking-wide text-maroon-200">TOTAL BOQ</span>
                 <span class="text-lg font-semibold"><x-money :amount="$boq->totalAmount()" /></span>
+            </div>
+            <div class="mt-1 flex flex-wrap justify-end gap-4 text-sm text-maroon-100">
+                <span>Total Material: <strong class="text-white"><x-money :amount="$boq->materialAmount()" /></strong></span>
+                <span>Total Jasa: <strong class="text-white"><x-money :amount="$boq->serviceAmount()" /></strong></span>
             </div>
         </div>
 

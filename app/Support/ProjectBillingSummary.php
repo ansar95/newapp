@@ -9,6 +9,7 @@ use App\Models\ClientBilling;
 use App\Models\ClientPayment;
 use App\Models\Project;
 use App\Models\ProjectTerm;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -59,7 +60,7 @@ class ProjectBillingSummary
 
     public function totalTermPercentage(): float
     {
-        return BmhpActualCost::percentage($this->contractValue(), $this->totalTermAmount());
+        return ProjectActualCost::percentage($this->contractValue(), $this->totalTermAmount());
     }
 
     /**
@@ -99,6 +100,18 @@ class ProjectBillingSummary
     public function termRemaining(ProjectTerm $term): float
     {
         return round(max(0, (float) $term->amount - $this->termReserved($term)), 2);
+    }
+
+    /**
+     * Active terms whose billing condition is met but still have an amount left to bill.
+     *
+     * @return Collection<int, ProjectTerm>
+     */
+    public function dueTerms(float $projectProgress, ?CarbonInterface $today = null): Collection
+    {
+        return $this->activeTerms()
+            ->filter(fn (ProjectTerm $term) => $term->isTriggerReached($projectProgress, $today) && $this->termRemaining($term) > 0)
+            ->values();
     }
 
     public function termOutstanding(ProjectTerm $term): float
@@ -166,12 +179,12 @@ class ProjectBillingSummary
 
     public function billedPercentage(): float
     {
-        return BmhpActualCost::percentage($this->contractValue(), $this->totalBilled());
+        return ProjectActualCost::percentage($this->contractValue(), $this->totalBilled());
     }
 
     public function receivedPercentage(): float
     {
-        return BmhpActualCost::percentage($this->contractValue(), $this->totalReceived());
+        return ProjectActualCost::percentage($this->contractValue(), $this->totalReceived());
     }
 
     private function billingReceivedCents(ClientBilling $billing): int

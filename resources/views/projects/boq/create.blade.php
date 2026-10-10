@@ -66,10 +66,10 @@
                         <tr>
                             <th class="px-2 py-2">Code</th>
                             <th class="px-2 py-2">Item Name</th>
-                            <th class="px-2 py-2">Kategori</th>
                             <th class="px-2 py-2">Quantity</th>
                             <th class="px-2 py-2">Unit</th>
-                            <th class="px-2 py-2">Unit Price</th>
+                            <th class="px-2 py-2">Harga Material</th>
+                            <th class="px-2 py-2">Harga Jasa</th>
                             <th class="px-2 py-2">Total</th>
                             <th class="px-2 py-2"></th>
                         </tr>
@@ -79,16 +79,11 @@
                             <tr class="border-t border-maroon-100">
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][code]`" x-model="item.code" class="w-24 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][name]`" x-model="item.name" class="w-full rounded-md border-maroon-300 text-sm" required></td>
-                                <td class="px-2 py-2">
-                                    <select :name="`cogs[${ci}][items][${ii}][category]`" x-model="item.category" class="w-40 rounded-md border-maroon-300 text-sm" required>
-                                        <option value="main_material">Material Utama</option>
-                                        <option value="consumable">Barang Consumable</option>
-                                    </select>
-                                </td>
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][quantity]`" x-model.number="item.quantity" class="w-24 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][unit]`" x-model="item.unit" class="w-20 rounded-md border-maroon-300 text-sm" required></td>
-                                <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][unit_price]`" x-model.number="item.unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
-                                <td class="px-2 py-2 font-medium" x-text="formatMoney(itemTotal(item))"></td>
+                                <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][material_unit_price]`" x-model.number="item.material_unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
+                                <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][service_unit_price]`" x-model.number="item.service_unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
+                                <td class="px-2 py-2 whitespace-nowrap font-medium" x-text="formatMoney(itemTotal(item))"></td>
                                 <td class="px-2 py-2">
                                     <button type="button" class="text-maroon-900 hover:underline" @click="removeItem(ci, ii)" x-show="cogs.items.length > 1">Hapus</button>
                                 </td>
@@ -100,7 +95,12 @@
 
                 <div class="mt-3 flex items-center justify-between">
                     <button type="button" class="rounded-md border border-maroon-300 px-3 py-1.5 text-sm" @click="addItem(ci)">+ Add Item</button>
-                    <p class="text-sm font-semibold">COGS Total: <span x-text="formatMoney(cogsTotal(cogs))"></span></p>
+                    <div class="text-right">
+                        <p class="text-sm font-semibold">COGS Total: <span x-text="formatMoney(cogsTotal(cogs))"></span></p>
+                        <p class="text-xs text-maroon-700">
+                            Material <span x-text="formatMoney(cogsMaterial(cogs))"></span> · Jasa <span x-text="formatMoney(cogsService(cogs))"></span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </template>
@@ -112,6 +112,8 @@
                     <div class="flex flex-wrap gap-4">
                         <span>COGS: <strong x-text="cogsList.length"></strong></span>
                         <span>Items: <strong x-text="itemCount()"></strong></span>
+                        <span>Material: <strong x-text="formatMoney(boqMaterial())"></strong></span>
+                        <span>Jasa: <strong x-text="formatMoney(boqService())"></strong></span>
                         <span>TOTAL BOQ: <strong x-text="formatMoney(boqTotal())"></strong></span>
                     </div>
                 </div>
@@ -135,23 +137,29 @@
                 cogsList: [{
                     name: 'Engineering',
                     description: '',
-                    items: [{ code: 'ITEM-001', name: '', category: 'main_material', quantity: 1, unit: 'ls', unit_price: 0 }]
+                    items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0 }]
                 }],
                 addCogs() {
                     this.cogsList.push({
                         name: '',
                         description: '',
-                        items: [{ code: 'ITEM-001', name: '', category: 'main_material', quantity: 1, unit: 'ls', unit_price: 0 }]
+                        items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0 }]
                     });
                 },
                 removeCogs(ci) { this.cogsList.splice(ci, 1); },
                 addItem(ci) {
                     const n = String(this.cogsList[ci].items.length + 1).padStart(3, '0');
-                    this.cogsList[ci].items.push({ code: 'ITEM-' + n, name: '', category: 'main_material', quantity: 1, unit: 'ls', unit_price: 0 });
+                    this.cogsList[ci].items.push({ code: 'ITEM-' + n, name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0 });
                 },
                 removeItem(ci, ii) { this.cogsList[ci].items.splice(ii, 1); },
-                itemTotal(item) { return (Number(item.quantity) || 0) * (Number(item.unit_price) || 0); },
+                itemMaterial(item) { return (Number(item.quantity) || 0) * (Number(item.material_unit_price) || 0); },
+                itemService(item) { return (Number(item.quantity) || 0) * (Number(item.service_unit_price) || 0); },
+                itemTotal(item) { return this.itemMaterial(item) + this.itemService(item); },
+                cogsMaterial(cogs) { return cogs.items.reduce((s, i) => s + this.itemMaterial(i), 0); },
+                cogsService(cogs) { return cogs.items.reduce((s, i) => s + this.itemService(i), 0); },
                 cogsTotal(cogs) { return cogs.items.reduce((s, i) => s + this.itemTotal(i), 0); },
+                boqMaterial() { return this.cogsList.reduce((s, c) => s + this.cogsMaterial(c), 0); },
+                boqService() { return this.cogsList.reduce((s, c) => s + this.cogsService(c), 0); },
                 boqTotal() { return this.cogsList.reduce((s, c) => s + this.cogsTotal(c), 0); },
                 itemCount() { return this.cogsList.reduce((s, c) => s + c.items.length, 0); },
                 formatMoney(v) { return 'Rp' + new Intl.NumberFormat('id-ID').format(Math.round(v || 0)); },
@@ -194,7 +202,7 @@
                             }
 
                             const headers = this.parseCsvLine(lines[0]).map((h) => h.toLowerCase());
-                            const required = ['cogs_name', 'item_code', 'item_name', 'quantity', 'unit', 'unit_price'];
+                            const required = ['cogs_name', 'item_code', 'item_name', 'quantity', 'unit'];
                             for (const column of required) {
                                 if (!headers.includes(column)) {
                                     throw new Error('Kolom wajib hilang: ' + column);
@@ -202,14 +210,11 @@
                             }
 
                             const index = Object.fromEntries(headers.map((header, i) => [header, i]));
+                            const materialColumn = 'material_price' in index ? 'material_price' : 'unit_price';
+                            if (!(materialColumn in index)) {
+                                throw new Error('Kolom wajib hilang: material_price');
+                            }
                             const grouped = {};
-                            const normalizeCategory = (value) => {
-                                const normalized = String(value || '').trim().toLowerCase();
-                                if (['consumable', 'barang consumable', 'barang_consumable'].includes(normalized)) {
-                                    return 'consumable';
-                                }
-                                return 'main_material';
-                            };
 
                             for (let i = 1; i < lines.length; i++) {
                                 const cols = this.parseCsvLine(lines[i]);
@@ -235,10 +240,10 @@
                                 grouped[nameKey].items.push({
                                     code: cols[index.item_code] || '',
                                     name: cols[index.item_name] || '',
-                                    category: normalizeCategory(cols[index.item_category]),
                                     quantity: Number(cols[index.quantity] || 0),
                                     unit: cols[index.unit] || 'ls',
-                                    unit_price: Number(cols[index.unit_price] || 0)
+                                    material_unit_price: Number(cols[index[materialColumn]] || 0),
+                                    service_unit_price: 'service_price' in index ? Number(cols[index.service_price] || 0) : 0
                                 });
                             }
 
@@ -258,7 +263,7 @@
                     reader.readAsText(file);
                 },
                 exportCsv() {
-                    const headers = ['cogs_name', 'cogs_description', 'item_code', 'item_name', 'item_description', 'item_category', 'quantity', 'unit', 'unit_price'];
+                    const headers = ['cogs_name', 'cogs_description', 'item_code', 'item_name', 'item_description', 'quantity', 'unit', 'material_price', 'service_price'];
                     const rows = [headers.join(',')];
 
                     this.cogsList.forEach((cogs) => {
@@ -269,10 +274,10 @@
                                 this.csvEscape(item.code),
                                 this.csvEscape(item.name),
                                 '',
-                                this.csvEscape(item.category || 'main_material'),
                                 item.quantity,
                                 this.csvEscape(item.unit),
-                                item.unit_price
+                                item.material_unit_price,
+                                item.service_unit_price
                             ].join(','));
                         });
                     });

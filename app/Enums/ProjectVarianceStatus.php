@@ -3,7 +3,7 @@
 namespace App\Enums;
 
 /**
- * Cost variance category based on actual cost (BMHP + paid payments) against the approved BOQ value.
+ * Cost variance category based on actual cost (BMHP + rental + paid payments) against the approved BOQ value.
  */
 enum ProjectVarianceStatus: string
 {

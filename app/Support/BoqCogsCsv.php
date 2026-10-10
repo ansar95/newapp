@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-use App\Enums\BoqItemCategory;
 use App\Models\Boq;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
@@ -19,19 +18,19 @@ class BoqCogsCsv
         'item_code',
         'item_name',
         'item_description',
-        'item_category',
         'quantity',
         'unit',
-        'unit_price',
+        'material_price',
+        'service_price',
     ];
 
     public static function templateCsv(): string
     {
         $rows = [
             self::HEADERS,
-            ['Engineering', 'Design works', 'ITEM-E01', 'Design Drawing', '', BoqItemCategory::MainMaterial->value, '1', 'ls', '2000000'],
-            ['Engineering', 'Design works', 'ITEM-E02', 'Structural Calculation', '', BoqItemCategory::MainMaterial->value, '1', 'ls', '3000000'],
-            ['Installation', 'Site works', 'ITEM-I01', 'Cable Tray', '', BoqItemCategory::Consumable->value, '10', 'm', '100000'],
+            ['Engineering', 'Design works', 'ITEM-E01', 'Design Drawing', '', '1', 'ls', '0', '2000000'],
+            ['Engineering', 'Design works', 'ITEM-E02', 'Structural Calculation', '', '1', 'ls', '0', '3000000'],
+            ['Installation', 'Site works', 'ITEM-I01', 'Cable Tray', '', '10', 'm', '75000', '25000'],
         ];
 
         return self::rowsToCsv($rows);
@@ -51,12 +50,10 @@ class BoqCogsCsv
                     $item->code,
                     $item->name,
                     (string) ($item->description ?? ''),
-                    $item->category instanceof BoqItemCategory
-                        ? $item->category->value
-                        : BoqItemCategory::MainMaterial->value,
                     self::formatNumber($item->quantity),
                     $item->unit,
-                    self::formatNumber($item->unit_price),
+                    self::formatNumber($item->material_unit_price),
+                    self::formatNumber($item->service_unit_price),
                 ];
             }
         }
@@ -71,10 +68,10 @@ class BoqCogsCsv
      *     item_code: string,
      *     item_name: string,
      *     item_description: string|null,
-     *     item_category: string,
      *     quantity: string,
      *     unit: string,
-     *     unit_price: string,
+     *     material_price: string,
+     *     service_price: string,
      *     _line: int
      * }>
      */
@@ -110,7 +107,6 @@ class BoqCogsCsv
                 'item_description',
                 'quantity',
                 'unit',
-                'unit_price',
             ];
 
             foreach ($required as $column) {
@@ -122,6 +118,13 @@ class BoqCogsCsv
             }
 
             $index = array_flip($header);
+            $materialColumn = isset($index['material_price']) ? 'material_price' : 'unit_price';
+
+            if (! isset($index[$materialColumn])) {
+                throw new InvalidArgumentException(
+                    'Kolom CSV wajib hilang: material_price. Gunakan template yang disediakan.'
+                );
+            }
             $rows = collect();
             $line = 1;
 
@@ -132,20 +135,18 @@ class BoqCogsCsv
                     continue;
                 }
 
-                $rawCategory = isset($index['item_category'])
-                    ? trim((string) ($data[$index['item_category']] ?? ''))
-                    : '';
-
                 $rows->push([
                     'cogs_name' => trim((string) ($data[$index['cogs_name']] ?? '')),
                     'cogs_description' => self::nullableTrim($data[$index['cogs_description']] ?? null),
                     'item_code' => trim((string) ($data[$index['item_code']] ?? '')),
                     'item_name' => trim((string) ($data[$index['item_name']] ?? '')),
                     'item_description' => self::nullableTrim($data[$index['item_description']] ?? null),
-                    'item_category' => self::normalizeCategory($rawCategory),
                     'quantity' => trim((string) ($data[$index['quantity']] ?? '')),
                     'unit' => trim((string) ($data[$index['unit']] ?? '')),
-                    'unit_price' => trim((string) ($data[$index['unit_price']] ?? '')),
+                    'material_price' => trim((string) ($data[$index[$materialColumn]] ?? '')),
+                    'service_price' => isset($index['service_price'])
+                        ? trim((string) ($data[$index['service_price']] ?? ''))
+                        : '',
                     '_line' => $line,
                 ]);
             }
@@ -182,17 +183,6 @@ class BoqCogsCsv
         fclose($handle);
 
         return $csv;
-    }
-
-    public static function normalizeCategory(string $value): string
-    {
-        $normalized = strtolower(trim($value));
-
-        return match ($normalized) {
-            '', 'main_material', 'material_utama', 'material utama' => BoqItemCategory::MainMaterial->value,
-            'consumable', 'barang_consumable', 'barang consumable' => BoqItemCategory::Consumable->value,
-            default => $normalized,
-        };
     }
 
     private static function normalizeHeader(string $value): string

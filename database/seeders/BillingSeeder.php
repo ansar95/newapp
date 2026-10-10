@@ -33,10 +33,10 @@ class BillingSeeder extends Seeder
 
         $contract = (float) $project->contract_value;
         $terms = collect([
-            [1, 'Uang Muka', 20, ProjectTermTriggerType::Manual, 'Setelah kontrak ditandatangani', ProjectTermReadiness::Ready],
-            [2, 'Progress 50%', 30, ProjectTermTriggerType::Progress, 'Progress fisik 50%', ProjectTermReadiness::Ready],
-            [3, 'Progress 100%', 30, ProjectTermTriggerType::Progress, 'Progress fisik 100%', ProjectTermReadiness::NotReady],
-            [4, 'Retensi', 20, ProjectTermTriggerType::Milestone, 'BAST / masa pemeliharaan selesai', ProjectTermReadiness::NotReady],
+            [1, 'Uang Muka', 20, ProjectTermTriggerType::Manual, 'Setelah kontrak ditandatangani', ProjectTermReadiness::Ready, null],
+            [2, 'Progress 50%', 30, ProjectTermTriggerType::Progress, 'Progress fisik 50%', ProjectTermReadiness::Ready, 50],
+            [3, 'Progress 100%', 30, ProjectTermTriggerType::Progress, 'Progress fisik 100%', ProjectTermReadiness::NotReady, 100],
+            [4, 'Retensi', 20, ProjectTermTriggerType::Milestone, 'BAST / masa pemeliharaan selesai', ProjectTermReadiness::NotReady, null],
         ])->mapWithKeys(fn (array $row) => [$row[0] => ProjectTerm::query()->create([
             'project_id' => $project->id,
             'term_number' => $row[0],
@@ -46,6 +46,7 @@ class BillingSeeder extends Seeder
             'amount' => round($contract * $row[2] / 100, 2),
             'trigger_type' => $row[3],
             'trigger_value' => $row[4],
+            'trigger_progress' => $row[6],
             'readiness' => $row[5],
             'created_by' => $admin->id,
         ])]);

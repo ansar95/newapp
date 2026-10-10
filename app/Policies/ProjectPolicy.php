@@ -38,6 +38,12 @@ class ProjectPolicy
         return $user->hasPermission(Permission::ProjectUpdate);
     }
 
+    public function viewReports(User $user, Project $project): bool
+    {
+        return $user->hasPermission(Permission::ProjectView)
+            && $user->hasPermission(Permission::ReportView);
+    }
+
     public function delete(User $user, Project $project): bool
     {
         return $user->isSuperadmin();

@@ -37,14 +37,14 @@ enum Permission: string
     case AssetManageMaster = 'asset.manage_master';
     case AssetManageRequest = 'asset.manage_request';
 
-    case BmhpView = 'bmhp.view';
-    case BmhpCreate = 'bmhp.create';
-    case BmhpUpdate = 'bmhp.update';
-    case BmhpSubmit = 'bmhp.submit';
-    case BmhpConfirm = 'bmhp.confirm';
-    case BmhpCancel = 'bmhp.cancel';
-    case BmhpAllocate = 'bmhp.allocate';
-    case BmhpManageMaster = 'bmhp.manage_master';
+    case ProcurementView = 'procurement.view';
+    case ProcurementCreate = 'procurement.create';
+    case ProcurementUpdate = 'procurement.update';
+    case ProcurementSubmit = 'procurement.submit';
+    case ProcurementApprove = 'procurement.approve';
+    case ProcurementPay = 'procurement.pay';
+    case ProcurementCancel = 'procurement.cancel';
+    case ProcurementAllocate = 'procurement.allocate';
 
     case BillingView = 'billing.view';
     case BillingCreate = 'billing.create';

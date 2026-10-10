@@ -13,7 +13,7 @@
         <div class="space-y-4 lg:col-span-2">
             @if ($context->primaryBoq)
                 <x-project-summary-cards :context="$context" />
-                @can('viewForProject', [\App\Models\BmhpPurchase::class, $project])
+                @can('viewForProject', [\App\Models\ProcurementRequest::class, $project])
                     <x-cost-control-summary :context="$context" />
                 @endcan
             @else
@@ -151,7 +151,7 @@
                 <div>
                     <h3 class="text-base font-semibold text-red-800">Hapus Project</h3>
                     <p class="mt-1 text-sm text-maroon-700">
-                        Project beserta BOQ, payment, BMHP, penagihan, dan dokumennya akan disembunyikan dari aplikasi. Data tetap tersimpan di database. Hanya Super Admin yang dapat menghapus project.
+                        Project beserta BOQ, payment, pengadaan barang, penagihan, dan dokumennya akan disembunyikan dari aplikasi. Data tetap tersimpan di database. Hanya Super Admin yang dapat menghapus project.
                     </p>
                 </div>
                 <button type="button"
@@ -173,7 +173,7 @@
                 <h2 class="text-lg font-semibold text-maroon-950">Hapus project {{ $project->code }}?</h2>
 
                 <ul class="mt-3 list-disc space-y-1 pl-5 text-sm text-maroon-800">
-                    <li>Project, BOQ, payment, BMHP, penagihan, dan dokumen project ini tidak akan tampil lagi di aplikasi maupun laporan.</li>
+                    <li>Project, BOQ, payment, pengadaan barang, penagihan, dan dokumen project ini tidak akan tampil lagi di aplikasi maupun laporan.</li>
                     @if ($activeAssetCount > 0)
                         <li>{{ $activeAssetCount }} asset yang sedang dipakai project ini akan dilepas dan kembali berstatus AVAILABLE.</li>
                     @endif

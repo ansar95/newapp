@@ -6,6 +6,7 @@ use App\Enums\ProjectTermCalculationType;
 use App\Enums\ProjectTermReadiness;
 use App\Enums\ProjectTermTriggerType;
 use App\Models\Concerns\ResolvesWithActiveProject;
+use Carbon\CarbonInterface;
 use Database\Factories\ProjectTermFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'amount',
     'trigger_type',
     'trigger_value',
+    'trigger_progress',
     'due_date',
     'notes',
     'readiness',
@@ -52,6 +54,7 @@ class ProjectTerm extends Model
             'term_number' => 'integer',
             'percentage' => 'decimal:4',
             'amount' => 'decimal:2',
+            'trigger_progress' => 'decimal:2',
             'due_date' => 'date',
         ];
     }
@@ -89,6 +92,36 @@ class ProjectTerm extends Model
     public function isPercentage(): bool
     {
         return $this->calculation_type === ProjectTermCalculationType::Percentage;
+    }
+
+    /**
+     * Whether the term's billing condition is met: project progress reached the PROGRESS threshold,
+     * or the target date of a DATE term has arrived. Manual and milestone terms never trigger.
+     */
+    public function isTriggerReached(float $projectProgress, ?CarbonInterface $today = null): bool
+    {
+        if ($this->isCancelled()) {
+            return false;
+        }
+
+        return match ($this->trigger_type) {
+            ProjectTermTriggerType::Progress => $this->trigger_progress !== null
+                && round($projectProgress, 2) >= (float) $this->trigger_progress,
+            ProjectTermTriggerType::Date => $this->due_date !== null
+                && $this->due_date->lte(($today ?? now())->copy()->startOfDay()),
+            default => false,
+        };
+    }
+
+    public function triggerDescription(): string
+    {
+        $threshold = (float) $this->trigger_progress;
+
+        return match (true) {
+            $this->trigger_type === ProjectTermTriggerType::Progress && $this->trigger_progress !== null => 'Progress fisik ≥ '.percent_format($threshold, floor($threshold) === $threshold ? 0 : 2),
+            $this->trigger_type === ProjectTermTriggerType::Date && $this->due_date !== null => 'Tanggal '.date_id($this->due_date),
+            default => $this->trigger_type->label(),
+        };
     }
 
     public function displayName(): string

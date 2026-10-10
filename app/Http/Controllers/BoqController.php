@@ -31,7 +31,7 @@ class BoqController extends Controller
             'project' => $boq->project,
             'tab' => 'boq',
             'overallProgress' => $boq->project->progressPercentage(),
-            'actualCost' => request()->user()->hasPermission(Permission::BmhpView)
+            'actualCost' => request()->user()->hasPermission(Permission::ProcurementView)
                 ? ProjectActualCost::forProject($boq->project)
                 : null,
         ]);

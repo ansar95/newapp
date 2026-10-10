@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Enums\PaymentStatus;
+use App\Enums\ProcurementType;
 use App\Models\Boq;
 use App\Models\BoqCogs;
 use App\Models\BoqItem;
@@ -11,7 +12,7 @@ use App\Models\PaymentAllocation;
 use App\Models\Project;
 
 /**
- * Read-only actual cost of a project: confirmed BMHP allocations + PAID payment allocations.
+ * Read-only actual cost of a project: paid BMHP allocations + paid rental allocations + PAID payment allocations.
  */
 class ProjectActualCost
 {
@@ -20,7 +21,8 @@ class ProjectActualCost
      */
     private function __construct(
         public readonly Project $project,
-        public readonly BmhpActualCost $bmhp,
+        public readonly ProcurementActualCost $bmhp,
+        public readonly ProcurementActualCost $rental,
         private readonly array $paymentItemActuals,
         public readonly float $paidPaymentTotal,
     ) {}
@@ -46,7 +48,8 @@ class ProjectActualCost
 
         return new self(
             $project,
-            BmhpActualCost::forProject($project),
+            ProcurementActualCost::forProject($project, ProcurementType::Bmhp),
+            ProcurementActualCost::forProject($project, ProcurementType::Rental),
             $paymentItemActuals,
             round($paidPaymentTotal, 2),
         );
@@ -55,6 +58,11 @@ class ProjectActualCost
     public function bmhpForItem(BoqItem|int $item): float
     {
         return $this->bmhp->forItem($item);
+    }
+
+    public function rentalForItem(BoqItem|int $item): float
+    {
+        return $this->rental->forItem($item);
     }
 
     public function paymentForItem(BoqItem|int $item): float
@@ -66,12 +74,17 @@ class ProjectActualCost
 
     public function forItem(BoqItem|int $item): float
     {
-        return round($this->bmhpForItem($item) + $this->paymentForItem($item), 2);
+        return round($this->bmhpForItem($item) + $this->rentalForItem($item) + $this->paymentForItem($item), 2);
     }
 
     public function bmhpForCogs(BoqCogs $cogs): float
     {
         return $this->bmhp->forCogs($cogs);
+    }
+
+    public function rentalForCogs(BoqCogs $cogs): float
+    {
+        return $this->rental->forCogs($cogs);
     }
 
     public function paymentForCogs(BoqCogs $cogs): float
@@ -83,7 +96,7 @@ class ProjectActualCost
 
     public function forCogs(BoqCogs $cogs): float
     {
-        return round($this->bmhpForCogs($cogs) + $this->paymentForCogs($cogs), 2);
+        return round($this->bmhpForCogs($cogs) + $this->rentalForCogs($cogs) + $this->paymentForCogs($cogs), 2);
     }
 
     public function forBoq(Boq $boq): float
@@ -98,6 +111,11 @@ class ProjectActualCost
         return $this->bmhp->projectActual();
     }
 
+    public function rentalActual(): float
+    {
+        return $this->rental->projectActual();
+    }
+
     public function paymentActual(): float
     {
         return round(array_sum($this->paymentItemActuals), 2);
@@ -105,16 +123,20 @@ class ProjectActualCost
 
     public function projectActual(): float
     {
-        return round($this->bmhpActual() + $this->paymentActual(), 2);
+        return round($this->bmhpActual() + $this->rentalActual() + $this->paymentActual(), 2);
     }
 
     public static function variance(float $baseline, float $actual): float
     {
-        return BmhpActualCost::variance($baseline, $actual);
+        return round($baseline - $actual, 2);
     }
 
     public static function percentage(float $baseline, float $actual): float
     {
-        return BmhpActualCost::percentage($baseline, $actual);
+        if ($baseline <= 0) {
+            return 0.0;
+        }
+
+        return round(($actual / $baseline) * 100, 2);
     }
 }

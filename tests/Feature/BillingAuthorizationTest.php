@@ -120,7 +120,7 @@ class BillingAuthorizationTest extends TestCase
         $this->assertSame(ClientBillingStatus::Cancelled, $billing->fresh()->status);
     }
 
-    public function test_billing_tab_is_visible_between_bmhp_and_payment(): void
+    public function test_billing_tab_is_visible_between_procurement_and_payment(): void
     {
         $this->actingAs($this->makeFinance())
             ->get(route('projects.show', $this->project))
@@ -128,7 +128,9 @@ class BillingAuthorizationTest extends TestCase
             ->assertSeeInOrder([
                 route('projects.boq.index', $this->project),
                 route('projects.assets.index', $this->project),
+                route('projects.procurement.index', $this->project),
                 route('projects.bmhp.index', $this->project),
+                route('projects.rentals.index', $this->project),
                 route('projects.billing.index', $this->project),
                 route('projects.payment.index', $this->project),
                 route('projects.progress.index', $this->project),

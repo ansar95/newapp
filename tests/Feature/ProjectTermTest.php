@@ -56,6 +56,7 @@ class ProjectTermTest extends TestCase
                 'amount' => '300000000',
                 'trigger_type' => 'PROGRESS',
                 'trigger_value' => 'Progress fisik 50%',
+                'trigger_progress' => '50',
             ])
             ->assertSessionHasNoErrors();
 
@@ -66,6 +67,8 @@ class ProjectTermTest extends TestCase
         $this->assertSame(200_000_000.0, (float) $terms[0]->amount);
         $this->assertSame(ProjectTermCalculationType::FixedAmount, $terms[1]->calculation_type);
         $this->assertSame(300_000_000.0, (float) $terms[1]->amount);
+        $this->assertSame(50.0, (float) $terms[1]->trigger_progress);
+        $this->assertNull($terms[0]->trigger_progress);
         $this->assertSame(ProjectTermReadiness::NotReady, $terms[0]->readiness);
     }
 

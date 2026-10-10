@@ -63,6 +63,8 @@ class BoqRevisionController extends Controller
             'description',
             'quantity',
             'unit',
+            'material_unit_price',
+            'service_unit_price',
             'unit_price',
             'sort_order',
         ]));

@@ -51,9 +51,9 @@ class ProjectDetailContext
 
     public ProjectActualCost $actualCost;
 
-    public BmhpActualCost $bmhpActualCost;
-
     public float $bmhpActual = 0.0;
+
+    public float $rentalActual = 0.0;
 
     public float $paymentActual = 0.0;
 
@@ -131,8 +131,8 @@ class ProjectDetailContext
             ->count();
 
         $this->actualCost = ProjectActualCost::forProject($this->project);
-        $this->bmhpActualCost = $this->actualCost->bmhp;
         $this->bmhpActual = $this->actualCost->bmhpActual();
+        $this->rentalActual = $this->actualCost->rentalActual();
         $this->paymentActual = $this->actualCost->paymentActual();
         $this->totalActual = $this->actualCost->projectActual();
         $this->actualPercentage = ProjectActualCost::percentage($this->totalBoqValue, $this->totalActual);

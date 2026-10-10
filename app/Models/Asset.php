@@ -35,6 +35,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'requested_by',
     'request_status',
     'created_by',
+    'procurement_request_item_id',
 ])]
 class Asset extends Model
 {
@@ -75,6 +76,11 @@ class Asset extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
+    public function procurementRequestItem(): BelongsTo
+    {
+        return $this->belongsTo(ProcurementRequestItem::class);
+    }
+
     public function projectAssets(): HasMany
     {
         return $this->hasMany(ProjectAsset::class);
@@ -97,6 +103,22 @@ class Asset extends Model
         return $this->projectAssets()
             ->where('status', ProjectAssetStatus::InUse)
             ->exists();
+    }
+
+    /**
+     * Next sequential asset code (AST-0001, AST-0002, ...), including soft-deleted assets.
+     */
+    public static function nextCode(): string
+    {
+        $max = 0;
+
+        foreach (self::withTrashed()->where('code', 'like', 'AST-%')->lockForUpdate()->pluck('code') as $code) {
+            if (preg_match('/^AST-(\d+)$/i', (string) $code, $matches) === 1) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
+
+        return 'AST-'.str_pad((string) ($max + 1), 4, '0', STR_PAD_LEFT);
     }
 
     /**

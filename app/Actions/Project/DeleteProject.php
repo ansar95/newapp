@@ -16,7 +16,7 @@ class DeleteProject
     public function __construct(private ReleaseAssetFromProject $releaseAssetFromProject) {}
 
     /**
-     * Soft deletes the project after releasing its active assets; BOQ, payment, BMHP, billing and document data stay in the database.
+     * Soft deletes the project after releasing its active assets; BOQ, payment, procurement, billing and document data stay in the database.
      *
      * @param  array{confirmation_code?: string|null}  $data
      */

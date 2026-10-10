@@ -164,7 +164,7 @@ class ProcessPayment
     }
 
     /**
-     * Items whose actual cost (BMHP + PAID payments + this payment) would exceed their BOQ value.
+     * Items whose actual cost (BMHP + rental + PAID payments + this payment) would exceed their BOQ value.
      *
      * @param  Collection<int, array{allocated_amount: string, notes: string|null}>  $allocations
      * @param  Collection<int, BoqItem>  $boqItems

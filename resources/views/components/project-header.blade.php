@@ -55,10 +55,18 @@
            class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'assets' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
             Assets
         </a>
-        @can('viewForProject', [\App\Models\BmhpPurchase::class, $project])
+        @can('viewForProject', [\App\Models\ProcurementRequest::class, $project])
+            <a href="{{ route('projects.procurement.index', $project) }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'procurement' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
+                Pengadaan
+            </a>
             <a href="{{ route('projects.bmhp.index', $project) }}"
                class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'bmhp' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
                 BMHP
+            </a>
+            <a href="{{ route('projects.rentals.index', $project) }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'rentals' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
+                Sewa Alat
             </a>
         @endcan
         @can('viewForProject', [\App\Models\ClientBilling::class, $project])
@@ -81,5 +89,11 @@
            class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'progress' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
             Progress
         </a>
+        @can('viewReports', $project)
+            <a href="{{ route('projects.reports.index', $project) }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'reports' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
+                Laporan
+            </a>
+        @endcan
     </nav>
 </div>

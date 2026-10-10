@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\BoqItemCategory;
 use App\Models\BoqCogs;
 use App\Models\BoqItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -28,10 +27,18 @@ class BoqItemFactory extends Factory
             'quantity' => $quantity,
             'unit' => fake()->randomElement(['unit', 'm2', 'ls', 'set']),
             'unit_price' => $unitPrice,
-            'category' => fake()->randomElement(BoqItemCategory::cases()),
             'total_price' => round($quantity * $unitPrice, 2),
             'progress_percentage' => 0,
             'sort_order' => 0,
         ];
+    }
+
+    public function splitPrice(float $materialUnitPrice, float $serviceUnitPrice): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'unit_price' => null,
+            'material_unit_price' => $materialUnitPrice,
+            'service_unit_price' => $serviceUnitPrice,
+        ]);
     }
 }

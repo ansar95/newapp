@@ -2,15 +2,16 @@
 
 namespace Tests\Feature;
 
-use App\Actions\Bmhp\AllocateBmhpPurchaseDetail;
 use App\Actions\Payment\CreatePaymentPlan;
 use App\Actions\Payment\PaymentAllocationMath;
 use App\Actions\Payment\ProcessPayment;
 use App\Actions\Payment\VoidPayment;
+use App\Actions\Procurement\AllocateProcurementItem;
 use App\Actions\Progress\UpdateItemProgress;
 use App\Enums\PaymentPlanStatus;
 use App\Enums\PaymentPlanType;
 use App\Enums\PaymentStatus;
+use App\Enums\ProcurementType;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Boq;
 use App\Models\BoqItem;
@@ -115,11 +116,7 @@ class PaymentActualCostTest extends TestCase
 
     public function test_overrun_check_includes_bmhp_actual(): void
     {
-        $purchase = $this->makeDraftBmhpPurchase($this->admin, $this->project, [[$this->makeMasterBmhp($this->admin), 1, 1500000]]);
-        app(AllocateBmhpPurchaseDetail::class)->handle($this->admin, $purchase->details->sole(), [
-            ['boq_item_id' => $this->items['ITEM-E01']->id, 'allocated_amount' => 1500000],
-        ]);
-        $this->submitAndConfirmBmhpPurchase($this->admin, $purchase);
+        $this->allocatePaidProcurement(ProcurementType::Bmhp, 'ITEM-E01', 1500000);
 
         $plan = $this->makeReadyPlan('PP-004', ['ITEM-E01' => 1000000]);
 
@@ -199,13 +196,21 @@ class PaymentActualCostTest extends TestCase
         );
     }
 
-    public function test_project_actual_is_bmhp_plus_payment_and_paid_uses_real_amount(): void
+    public function test_overrun_check_includes_rental_actual(): void
     {
-        $purchase = $this->makeDraftBmhpPurchase($this->admin, $this->project, [[$this->makeMasterBmhp($this->admin), 1, 500000]]);
-        app(AllocateBmhpPurchaseDetail::class)->handle($this->admin, $purchase->details->sole(), [
-            ['boq_item_id' => $this->items['ITEM-E03']->id, 'allocated_amount' => 500000],
-        ]);
-        $this->submitAndConfirmBmhpPurchase($this->admin, $purchase);
+        $this->allocatePaidProcurement(ProcurementType::Rental, 'ITEM-E01', 1500000);
+
+        $plan = $this->makeReadyPlan('PP-004', ['ITEM-E01' => 1000000]);
+
+        $this->expectException(ValidationException::class);
+
+        $this->pay($plan, 1000000, ['ITEM-E01' => 1000000]);
+    }
+
+    public function test_project_actual_is_bmhp_plus_rental_plus_payment_and_paid_uses_real_amount(): void
+    {
+        $this->allocatePaidProcurement(ProcurementType::Bmhp, 'ITEM-E03', 500000);
+        $this->allocatePaidProcurement(ProcurementType::Rental, 'ITEM-E03', 300000);
 
         $plan = $this->makeReadyPlan('PP-009', ['ITEM-E02' => 3000000]);
         $this->pay($plan, 3200000, ['ITEM-E02' => 3200000], 'Pekerjaan tambah');
@@ -213,9 +218,10 @@ class PaymentActualCostTest extends TestCase
         $context = ProjectDetailContext::for($this->project->fresh(), $this->admin);
 
         $this->assertSame(500000.0, $context->bmhpActual);
+        $this->assertSame(300000.0, $context->rentalActual);
         $this->assertSame(3200000.0, $context->paymentActual);
-        $this->assertSame(3700000.0, $context->totalActual);
-        $this->assertSame(7300000.0, $context->actualVariance);
+        $this->assertSame(4000000.0, $context->totalActual);
+        $this->assertSame(7000000.0, $context->actualVariance);
         $this->assertSame(3200000.0, $context->totalPaid);
         $this->assertSame(3200000.0, app(ReportData::class)->hubSummary()['total_paid']);
 
@@ -223,7 +229,7 @@ class PaymentActualCostTest extends TestCase
             ->get(route('projects.payment.index', $this->project))
             ->assertOk()
             ->assertSee('Pekerjaan tambah')
-            ->assertSee('Rp3.700.000');
+            ->assertSee('Rp4.000.000');
     }
 
     public function test_void_payment_is_removed_from_actual_and_plan_can_be_paid_again(): void
@@ -326,6 +332,17 @@ class PaymentActualCostTest extends TestCase
                 ->map(fn ($allocated, string $code) => ['boq_item_id' => $this->items[$code]->id, 'allocated_amount' => $allocated])
                 ->values()
                 ->all(),
+        ]);
+    }
+
+    private function allocatePaidProcurement(ProcurementType $type, string $boqItemCode, float|int $amount): void
+    {
+        $request = $this->makePaidProcurementRequest($this->admin, $this->project, $type, [
+            $this->procurementItemPayload($type, 1, $amount),
+        ]);
+
+        app(AllocateProcurementItem::class)->handle($this->admin, $request->items->sole(), [
+            ['boq_item_id' => $this->items[$boqItemCode]->id, 'allocated_amount' => $amount],
         ]);
     }
 }

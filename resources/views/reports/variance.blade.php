@@ -8,7 +8,7 @@
 
     <x-page-header
         title="Laporan Variance Project"
-        subtitle="Actual cost (BMHP + Payment PAID) dibandingkan nilai BOQ approved. Project ACTIVE dan COMPLETED, diurutkan dari persentase actual tertinggi."
+        subtitle="Actual cost (BMHP + Sewa Alat + Payment PAID) dibandingkan nilai BOQ approved. Project ACTIVE dan COMPLETED, diurutkan dari persentase actual tertinggi."
     />
 
     @php
@@ -76,7 +76,7 @@
             <div class="p-2">
                 <x-empty-state
                     :title="$filters['variance'] === '' ? 'Belum ada project ACTIVE/COMPLETED dengan BOQ approved.' : 'Tidak ada project dalam kategori ini.'"
-                    description="Variance dihitung dari BOQ approved dikurangi actual cost (BMHP terkonfirmasi + Payment PAID)." />
+                    description="Variance dihitung dari BOQ approved dikurangi actual cost (BMHP + Sewa Alat yang sudah dibayar dan dialokasikan + Payment PAID)." />
             </div>
         @else
             <div class="overflow-x-auto">
@@ -107,6 +107,7 @@
                             <td class="px-4 py-3 text-right whitespace-nowrap">
                                 <x-money :amount="$row['actual_cost']" />
                                 <span class="block text-xs text-maroon-700">BMHP <x-money :amount="$row['bmhp_actual']" /></span>
+                                <span class="block text-xs text-maroon-700">Sewa Alat <x-money :amount="$row['rental_actual']" /></span>
                                 <span class="block text-xs text-maroon-700">Payment <x-money :amount="$row['payment_actual']" /></span>
                             </td>
                             <td @class(['px-4 py-3 text-right whitespace-nowrap font-semibold', 'text-red-700' => $isOver, 'text-maroon-950' => ! $isOver])>

@@ -1,28 +1,27 @@
 <?php
 
 use App\Http\Controllers\AssetController;
-use App\Http\Controllers\BmhpPurchaseController;
-use App\Http\Controllers\BmhpPurchaseDetailController;
 use App\Http\Controllers\BoqController;
 use App\Http\Controllers\BoqReviewController;
 use App\Http\Controllers\BoqRevisionController;
 use App\Http\Controllers\ClientBillingController;
 use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\MasterBmhpController;
-use App\Http\Controllers\MasterBmhpImportController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentPlanController;
+use App\Http\Controllers\ProcurementAllocationController;
+use App\Http\Controllers\ProcurementRequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\ProjectAssetController;
 use App\Http\Controllers\ProjectBillingController;
-use App\Http\Controllers\ProjectBmhpController;
 use App\Http\Controllers\ProjectBoqController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectDocumentController;
 use App\Http\Controllers\ProjectDocumentVersionController;
 use App\Http\Controllers\ProjectDocumentWorkflowController;
+use App\Http\Controllers\ProjectProcurementController;
+use App\Http\Controllers\ProjectReportController;
 use App\Http\Controllers\ProjectTermController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
@@ -62,34 +61,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/assets', [ProjectAssetController::class, 'store'])->name('projects.assets.store');
     Route::post('/projects/{project}/assets/{projectAsset}/release', [ProjectAssetController::class, 'release'])->name('projects.assets.release');
 
-    Route::get('/projects/{project}/bmhp', [ProjectBmhpController::class, 'index'])->name('projects.bmhp.index');
-    Route::get('/projects/{project}/bmhp/create', [ProjectBmhpController::class, 'create'])->name('projects.bmhp.create');
-    Route::post('/projects/{project}/bmhp', [ProjectBmhpController::class, 'store'])->name('projects.bmhp.store');
+    Route::get('/projects/{project}/procurement', [ProjectProcurementController::class, 'index'])->name('projects.procurement.index');
+    Route::get('/projects/{project}/procurement/create', [ProjectProcurementController::class, 'create'])->name('projects.procurement.create');
+    Route::post('/projects/{project}/procurement', [ProjectProcurementController::class, 'store'])->name('projects.procurement.store');
+    Route::get('/projects/{project}/bmhp', [ProcurementAllocationController::class, 'bmhp'])->name('projects.bmhp.index');
+    Route::get('/projects/{project}/rentals', [ProcurementAllocationController::class, 'rentals'])->name('projects.rentals.index');
 
-    Route::get('/bmhp-purchases/{bmhpPurchase}', [BmhpPurchaseController::class, 'show'])->name('bmhp-purchases.show');
-    Route::get('/bmhp-purchases/{bmhpPurchase}/edit', [BmhpPurchaseController::class, 'edit'])->name('bmhp-purchases.edit');
-    Route::put('/bmhp-purchases/{bmhpPurchase}', [BmhpPurchaseController::class, 'update'])->name('bmhp-purchases.update');
-    Route::post('/bmhp-purchases/{bmhpPurchase}/submit', [BmhpPurchaseController::class, 'submit'])->name('bmhp-purchases.submit');
-    Route::post('/bmhp-purchases/{bmhpPurchase}/confirm', [BmhpPurchaseController::class, 'confirm'])->name('bmhp-purchases.confirm');
-    Route::post('/bmhp-purchases/{bmhpPurchase}/return-to-draft', [BmhpPurchaseController::class, 'returnToDraft'])->name('bmhp-purchases.return-to-draft');
-    Route::post('/bmhp-purchases/{bmhpPurchase}/cancel', [BmhpPurchaseController::class, 'cancel'])->name('bmhp-purchases.cancel');
-    Route::get('/bmhp-purchases/{bmhpPurchase}/receipt', [BmhpPurchaseController::class, 'receipt'])->name('bmhp-purchases.receipt');
-    Route::post('/bmhp-purchases/{bmhpPurchase}/details', [BmhpPurchaseDetailController::class, 'store'])->name('bmhp-purchases.details.store');
-    Route::patch('/bmhp-purchase-details/{detail}', [BmhpPurchaseDetailController::class, 'update'])->name('bmhp-purchase-details.update');
-    Route::delete('/bmhp-purchase-details/{detail}', [BmhpPurchaseDetailController::class, 'destroy'])->name('bmhp-purchase-details.destroy');
-    Route::put('/bmhp-purchase-details/{detail}/allocations', [BmhpPurchaseDetailController::class, 'allocate'])->name('bmhp-purchase-details.allocate');
-
-    Route::get('/master-bmhp', [MasterBmhpController::class, 'index'])->name('master-bmhps.index');
-    Route::get('/master-bmhp/create', [MasterBmhpController::class, 'create'])->name('master-bmhps.create');
-    Route::get('/master-bmhp/import', [MasterBmhpImportController::class, 'show'])->name('master-bmhps.import');
-    Route::get('/master-bmhp/import/template', [MasterBmhpImportController::class, 'template'])->name('master-bmhps.import.template');
-    Route::post('/master-bmhp/import', [MasterBmhpImportController::class, 'preview'])->name('master-bmhps.import.preview');
-    Route::post('/master-bmhp/import/confirm', [MasterBmhpImportController::class, 'confirm'])->name('master-bmhps.import.confirm');
-    Route::post('/master-bmhp/import/cancel', [MasterBmhpImportController::class, 'cancel'])->name('master-bmhps.import.cancel');
-    Route::post('/master-bmhp', [MasterBmhpController::class, 'store'])->name('master-bmhps.store');
-    Route::get('/master-bmhp/{masterBmhp}/edit', [MasterBmhpController::class, 'edit'])->name('master-bmhps.edit');
-    Route::put('/master-bmhp/{masterBmhp}', [MasterBmhpController::class, 'update'])->name('master-bmhps.update');
-    Route::delete('/master-bmhp/{masterBmhp}', [MasterBmhpController::class, 'destroy'])->name('master-bmhps.destroy');
+    Route::get('/procurement-requests/{procurementRequest}', [ProcurementRequestController::class, 'show'])->name('procurement-requests.show');
+    Route::get('/procurement-requests/{procurementRequest}/edit', [ProcurementRequestController::class, 'edit'])->name('procurement-requests.edit');
+    Route::put('/procurement-requests/{procurementRequest}', [ProcurementRequestController::class, 'update'])->name('procurement-requests.update');
+    Route::post('/procurement-requests/{procurementRequest}/submit', [ProcurementRequestController::class, 'submit'])->name('procurement-requests.submit');
+    Route::post('/procurement-requests/{procurementRequest}/approve', [ProcurementRequestController::class, 'approve'])->name('procurement-requests.approve');
+    Route::post('/procurement-requests/{procurementRequest}/return-to-draft', [ProcurementRequestController::class, 'returnToDraft'])->name('procurement-requests.return-to-draft');
+    Route::post('/procurement-requests/{procurementRequest}/cancel', [ProcurementRequestController::class, 'cancel'])->name('procurement-requests.cancel');
+    Route::get('/procurement-requests/{procurementRequest}/pay', [ProcurementRequestController::class, 'payForm'])->name('procurement-requests.pay');
+    Route::post('/procurement-requests/{procurementRequest}/pay', [ProcurementRequestController::class, 'pay'])->name('procurement-requests.pay.store');
+    Route::get('/procurement-requests/{procurementRequest}/payment-proof', [ProcurementRequestController::class, 'paymentProof'])->name('procurement-requests.payment-proof');
+    Route::put('/procurement-request-items/{procurementRequestItem}/allocations', [ProcurementAllocationController::class, 'update'])->name('procurement-request-items.allocate');
 
     Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
     Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');
@@ -171,6 +159,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/projects/{project}/progress', [ProgressController::class, 'index'])->name('projects.progress.index');
     Route::patch('/boq-items/{item}/progress', [ProgressController::class, 'update'])->name('progress.update');
+
+    Route::get('/projects/{project}/reports', [ProjectReportController::class, 'index'])->name('projects.reports.index');
+    Route::get('/projects/{project}/reports/export', [ProjectReportController::class, 'export'])->name('projects.reports.export');
+    Route::get('/projects/{project}/reports/print', [ProjectReportController::class, 'print'])->name('projects.reports.print');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.role.update');

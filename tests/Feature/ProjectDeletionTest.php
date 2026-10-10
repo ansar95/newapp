@@ -111,7 +111,7 @@ class ProjectDeletionTest extends TestCase
         app(SubmitBOQ::class)->handle($this->admin, $draftBoq);
         $approvedBoq = $this->makeApprovedBoq($this->admin, $this->project, 'BOQ-OK');
         $plan = $this->makePaidPlanForBoq($this->admin, $approvedBoq, 'PP-DEL');
-        $purchase = $this->makeDraftBmhpPurchase($this->admin, $this->project, [[$this->makeMasterBmhp($this->admin), 2, 50_000]]);
+        $procurementRequest = $this->makeDraftProcurementRequest($this->admin, $this->project);
         $term = $this->makeTerm($this->admin, $this->project, ['percentage' => 30]);
         $billing = $this->makeSentBilling($this->admin, $term, 300_000_000, 'INV/DEL/001');
         $document = $this->makeBillingDocument($this->admin, $billing);
@@ -120,7 +120,7 @@ class ProjectDeletionTest extends TestCase
         $childUrls = [
             route('boqs.show', $approvedBoq),
             route('boqs.review', $draftBoq),
-            route('bmhp-purchases.show', $purchase),
+            route('procurement-requests.show', $procurementRequest),
             route('client-billings.show', $billing),
             route('project-documents.show', $document),
             route('project-document-versions.download', $version),

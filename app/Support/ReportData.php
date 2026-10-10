@@ -234,6 +234,7 @@ class ReportData
                     'status' => $project->status,
                     'boq_value' => $boqValue,
                     'bmhp_actual' => $actualCost->bmhpActual(),
+                    'rental_actual' => $actualCost->rentalActual(),
                     'payment_actual' => $actualCost->paymentActual(),
                     'actual_cost' => $actual,
                     'variance' => ProjectActualCost::variance($boqValue, $actual),

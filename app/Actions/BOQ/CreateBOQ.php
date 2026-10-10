@@ -2,13 +2,13 @@
 
 namespace App\Actions\BOQ;
 
-use App\Enums\BoqItemCategory;
 use App\Enums\BoqStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Boq;
 use App\Models\BoqCogs;
 use App\Models\Project;
 use App\Models\User;
+use App\Support\BoqItemPriceInput;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -30,7 +30,9 @@ class CreateBOQ
      *             description?: string|null,
      *             quantity: float|int|string,
      *             unit: string,
-     *             unit_price: float|int|string,
+     *             material_unit_price?: float|int|string,
+     *             service_unit_price?: float|int|string|null,
+     *             unit_price?: float|int|string,
      *             progress_percentage?: float|int|string,
      *             sort_order?: int
      *         }>
@@ -39,6 +41,8 @@ class CreateBOQ
      */
     public function handle(User $actor, Project $project, array $data): Boq
     {
+        $data = $this->normalizePrices($data);
+
         $validated = Validator::make($data, [
             'code' => [
                 'required',
@@ -62,8 +66,8 @@ class CreateBOQ
             'cogs.*.items.*.description' => ['nullable', 'string'],
             'cogs.*.items.*.quantity' => ['required', 'numeric', 'min:0'],
             'cogs.*.items.*.unit' => ['required', 'string', 'max:50'],
-            'cogs.*.items.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'cogs.*.items.*.category' => ['nullable', Rule::enum(BoqItemCategory::class)],
+            'cogs.*.items.*.material_unit_price' => ['required', 'numeric', 'min:0'],
+            'cogs.*.items.*.service_unit_price' => ['nullable', 'numeric', 'min:0'],
             'cogs.*.items.*.progress_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'cogs.*.items.*.sort_order' => ['nullable', 'integer', 'min:0'],
         ], [
@@ -72,7 +76,7 @@ class CreateBOQ
             'cogs.*.items.required' => 'Setiap COGS harus memiliki minimal satu Item.',
             'cogs.*.items.min' => 'Setiap COGS harus memiliki minimal satu Item.',
             'cogs.*.items.*.quantity.min' => 'Quantity tidak boleh kurang dari 0.',
-            'cogs.*.items.*.unit_price.min' => 'Unit price tidak boleh kurang dari 0.',
+            ...BoqItemPriceInput::messages('cogs.*.items.*.'),
         ])->validate();
 
         return DB::transaction(function () use ($project, $validated): Boq {
@@ -99,16 +103,14 @@ class CreateBOQ
                 $itemRows = [];
 
                 foreach ($cogsData['items'] as $itemIndex => $itemData) {
-                    $this->assertPositiveContribution($itemData);
-
                     $itemRows[] = [
                         'code' => $itemData['code'],
                         'name' => $itemData['name'],
                         'description' => $itemData['description'] ?? null,
                         'quantity' => $itemData['quantity'],
                         'unit' => $itemData['unit'],
-                        'unit_price' => $itemData['unit_price'],
-                        'category' => $itemData['category'] ?? BoqItemCategory::MainMaterial->value,
+                        'material_unit_price' => $itemData['material_unit_price'],
+                        'service_unit_price' => $itemData['service_unit_price'] ?? 0,
                         'progress_percentage' => $itemData['progress_percentage'] ?? 0,
                         'sort_order' => $itemData['sort_order'] ?? $itemIndex + 1,
                     ];
@@ -128,12 +130,27 @@ class CreateBOQ
     }
 
     /**
-     * @param  array{quantity: float|int|string, unit_price: float|int|string}  $itemData
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
      */
-    private function assertPositiveContribution(array $itemData): void
+    private function normalizePrices(array $data): array
     {
-        if ((float) $itemData['quantity'] * (float) $itemData['unit_price'] < 0) {
-            throw BusinessRuleException::make('Total item tidak valid.');
+        if (! is_array($data['cogs'] ?? null)) {
+            return $data;
         }
+
+        foreach ($data['cogs'] as $cogsIndex => $cogsData) {
+            if (! is_array($cogsData['items'] ?? null)) {
+                continue;
+            }
+
+            foreach ($cogsData['items'] as $itemIndex => $itemData) {
+                if (is_array($itemData)) {
+                    $data['cogs'][$cogsIndex]['items'][$itemIndex] = BoqItemPriceInput::normalize($itemData);
+                }
+            }
+        }
+
+        return $data;
     }
 }

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class ProjectTermController extends Controller
 {
-    private const FIELDS = ['term_name', 'calculation_type', 'percentage', 'amount', 'trigger_type', 'trigger_value', 'due_date', 'notes'];
+    private const FIELDS = ['term_name', 'calculation_type', 'percentage', 'amount', 'trigger_type', 'trigger_value', 'trigger_progress', 'due_date', 'notes'];
 
     public function store(Request $request, Project $project, SaveProjectTerm $saveProjectTerm): RedirectResponse
     {

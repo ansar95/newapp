@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\BoqItemCategory;
 use App\Enums\BoqStatus;
 use App\Enums\PaymentPlanStatus;
 use App\Enums\PaymentPlanType;
@@ -412,13 +411,13 @@ class ProjectManagementSeeder extends Seeder
         ]);
 
         $this->seedItems($procurement, [
-            ['code' => 'ITEM-'.$itemPrefix.'-P01', 'name' => 'Cable Tray Supply', 'quantity' => 200, 'unit' => 'm', 'unit_price' => 85000, 'progress' => $withProgress ? 80 : 0, 'sort' => 1, 'category' => 'main_material'],
-            ['code' => 'ITEM-'.$itemPrefix.'-P02', 'name' => 'Control Panel Supply', 'quantity' => 4, 'unit' => 'set', 'unit_price' => 7500000, 'progress' => $withProgress ? 60 : 0, 'sort' => 2, 'category' => 'main_material'],
+            ['code' => 'ITEM-'.$itemPrefix.'-P01', 'name' => 'Cable Tray Supply', 'quantity' => 200, 'unit' => 'm', 'unit_price' => 85000, 'progress' => $withProgress ? 80 : 0, 'sort' => 1],
+            ['code' => 'ITEM-'.$itemPrefix.'-P02', 'name' => 'Control Panel Supply', 'quantity' => 4, 'unit' => 'set', 'unit_price' => 7500000, 'progress' => $withProgress ? 60 : 0, 'sort' => 2],
         ]);
 
         $this->seedItems($installation, [
-            ['code' => 'ITEM-'.$itemPrefix.'-I01', 'name' => 'Cable Tray Installation', 'quantity' => 200, 'unit' => 'm', 'unit_price' => 45000, 'progress' => $withProgress ? 35 : 0, 'sort' => 1, 'category' => 'consumable'],
-            ['code' => 'ITEM-'.$itemPrefix.'-I02', 'name' => 'Panel Installation', 'quantity' => 4, 'unit' => 'set', 'unit_price' => 2500000, 'progress' => $withProgress ? 20 : 0, 'sort' => 2, 'category' => 'consumable'],
+            ['code' => 'ITEM-'.$itemPrefix.'-I01', 'name' => 'Cable Tray Installation', 'quantity' => 200, 'unit' => 'm', 'unit_price' => 45000, 'progress' => $withProgress ? 35 : 0, 'sort' => 1],
+            ['code' => 'ITEM-'.$itemPrefix.'-I02', 'name' => 'Panel Installation', 'quantity' => 4, 'unit' => 'set', 'unit_price' => 2500000, 'progress' => $withProgress ? 20 : 0, 'sort' => 2],
         ]);
 
         $this->seedItems($testing, [
@@ -474,7 +473,7 @@ class ProjectManagementSeeder extends Seeder
     }
 
     /**
-     * @param  list<array{code: string, name: string, quantity: float|int, unit: string, unit_price: float|int, progress: float|int, sort: int, category?: string}>  $items
+     * @param  list<array{code: string, name: string, quantity: float|int, unit: string, unit_price: float|int, progress: float|int, sort: int}>  $items
      */
     private function seedItems(BoqCogs $cogs, array $items): void
     {
@@ -490,7 +489,6 @@ class ProjectManagementSeeder extends Seeder
                     'quantity' => $item['quantity'],
                     'unit' => $item['unit'],
                     'unit_price' => $item['unit_price'],
-                    'category' => $item['category'] ?? BoqItemCategory::MainMaterial->value,
                     'progress_percentage' => $item['progress'],
                     'sort_order' => $item['sort'],
                 ]

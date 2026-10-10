@@ -145,6 +145,7 @@
             <div class="rounded-lg border border-maroon-200 bg-white p-3">
                 <p class="text-maroon-700">Total Value</p>
                 <p class="font-semibold"><x-money :amount="$boq->totalAmount()" /></p>
+                <p class="text-xs text-maroon-700">Material <x-money :amount="$boq->materialAmount()" /> · Jasa <x-money :amount="$boq->serviceAmount()" /></p>
             </div>
             <div class="rounded-lg border border-maroon-200 bg-white p-3">
                 <p class="text-maroon-700">Submitted</p>
@@ -171,10 +172,9 @@
                         <thead class="bg-maroon-50 text-left text-xs uppercase text-maroon-700">
                         <tr>
                             <th class="px-3 py-2">Item</th>
-                            <th class="px-3 py-2">Kategori</th>
                             <th class="px-3 py-2">Qty</th>
                             <th class="px-3 py-2">Unit</th>
-                            <th class="px-3 py-2">Unit Price</th>
+                            <th class="px-3 py-2">Harga Satuan</th>
                             <th class="px-3 py-2">Total</th>
                             <th class="px-3 py-2">Progress</th>
                         </tr>
@@ -186,11 +186,16 @@
                                     <div class="font-medium">{{ $item->name }}</div>
                                     <div class="text-xs text-maroon-700">{{ $item->code }}</div>
                                 </td>
-                                <td class="px-3 py-2 text-xs">{{ $item->category?->label() ?? 'Material Utama' }}</td>
                                 <td class="px-3 py-2">{{ number_format((float) $item->quantity, 2) }}</td>
                                 <td class="px-3 py-2">{{ $item->unit }}</td>
-                                <td class="px-3 py-2"><x-money :amount="$item->unit_price" /></td>
-                                <td class="px-3 py-2 font-medium"><x-money :amount="$item->total_price" /></td>
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <x-money :amount="$item->unit_price" />
+                                    <div class="text-xs text-maroon-700">M <x-money :amount="$item->material_unit_price" /> · J <x-money :amount="$item->service_unit_price" /></div>
+                                </td>
+                                <td class="px-3 py-2 whitespace-nowrap">
+                                    <span class="font-medium"><x-money :amount="$item->total_price" /></span>
+                                    <div class="text-xs text-maroon-700">M <x-money :amount="$item->materialTotal()" /> · J <x-money :amount="$item->serviceTotal()" /></div>
+                                </td>
                                 <td class="px-3 py-2"><x-percent :value="$item->progress_percentage" :decimals="1" /></td>
                             </tr>
                         @endforeach
@@ -198,6 +203,7 @@
                     </table>
                 </div>
                 <p class="mt-3 text-right text-sm font-semibold text-maroon-900">COGS TOTAL: <x-money :amount="$cogs->totalAmount()" /></p>
+                <p class="text-right text-xs text-maroon-700">Material <x-money :amount="$cogs->materialAmount()" /> · Jasa <x-money :amount="$cogs->serviceAmount()" /></p>
             </div>
         @endforeach
 
@@ -205,6 +211,10 @@
             <div class="flex items-center justify-between">
                 <span class="text-sm font-medium uppercase tracking-wide text-maroon-200">TOTAL BOQ</span>
                 <span class="text-xl font-semibold"><x-money :amount="$boq->totalAmount()" /></span>
+            </div>
+            <div class="mt-2 flex flex-wrap justify-end gap-4 text-sm text-maroon-100">
+                <span>Total Material: <strong class="text-white"><x-money :amount="$boq->materialAmount()" /></strong></span>
+                <span>Total Jasa: <strong class="text-white"><x-money :amount="$boq->serviceAmount()" /></strong></span>
             </div>
         </div>
 

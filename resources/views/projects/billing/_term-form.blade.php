@@ -5,11 +5,15 @@
     $value = fn (string $field, mixed $default = null) => $useOld ? old($field, $default) : $default;
     $idPrefix = 'term-'.$formKey.'-';
     $initialType = $value('calculation_type', $term?->calculation_type?->value ?? \App\Enums\ProjectTermCalculationType::Percentage->value);
+    $initialTrigger = $value('trigger_type', $term?->trigger_type?->value ?? \App\Enums\ProjectTermTriggerType::Manual->value);
+    $progressTrigger = \App\Enums\ProjectTermTriggerType::Progress->value;
+    $dateTrigger = \App\Enums\ProjectTermTriggerType::Date->value;
 @endphp
 
 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-6"
      x-data="{
          type: @js($initialType),
+         trigger: @js($initialTrigger),
          percentage: @js((string) $value('percentage', $term?->percentage !== null ? (float) $term->percentage : '')),
          contract: {{ (float) ($project->contract_value ?? 0) }},
          get preview() { return Math.round(this.contract * (parseFloat(this.percentage) || 0)) / 100; },
@@ -55,22 +59,33 @@
     </div>
 
     <div>
-        <x-input-label :for="$idPrefix.'due_date'" value="Target Tanggal" />
+        <x-input-label :for="$idPrefix.'due_date'" x-text="trigger === '{{ $dateTrigger }}' ? 'Target Tanggal *' : 'Target Tanggal'" value="Target Tanggal" />
         <x-text-input :id="$idPrefix.'due_date'" type="date" name="due_date" class="mt-1 block w-full text-sm"
+                      x-bind:required="trigger === '{{ $dateTrigger }}'"
                       :value="$value('due_date', $term?->due_date?->format('Y-m-d'))" />
         @if ($useOld) <x-input-error :messages="$errors->get('due_date')" class="mt-1" /> @endif
     </div>
 
     <div>
         <x-input-label :for="$idPrefix.'trigger_type'" value="Syarat Penagihan" />
-        <select id="{{ $idPrefix }}trigger_type" name="trigger_type"
+        <select id="{{ $idPrefix }}trigger_type" name="trigger_type" x-model="trigger"
                 class="mt-1 block w-full rounded-md border-maroon-300 text-sm shadow-sm focus:border-maroon-600 focus:ring-maroon-600">
             @foreach ($triggerTypes as $triggerType)
-                <option value="{{ $triggerType->value }}" @selected($value('trigger_type', $term?->trigger_type?->value ?? \App\Enums\ProjectTermTriggerType::Manual->value) === $triggerType->value)>
-                    {{ $triggerType->label() }}
-                </option>
+                <option value="{{ $triggerType->value }}">{{ $triggerType->label() }}</option>
             @endforeach
         </select>
+        <p class="mt-1 text-xs text-maroon-700" x-show="trigger === '{{ $dateTrigger }}'" x-cloak>Pemberitahuan muncul saat Target Tanggal tiba.</p>
+    </div>
+
+    <div x-show="trigger === '{{ $progressTrigger }}'" x-cloak>
+        <x-input-label :for="$idPrefix.'trigger_progress'" value="Progress Minimal (%) *" />
+        <input id="{{ $idPrefix }}trigger_progress" type="number" name="trigger_progress" step="0.01" min="0.01" max="100"
+               value="{{ $value('trigger_progress', $term?->trigger_progress !== null ? (float) $term->trigger_progress : '') }}"
+               :disabled="trigger !== '{{ $progressTrigger }}'"
+               :required="trigger === '{{ $progressTrigger }}'"
+               class="mt-1 block w-full rounded-md border-maroon-300 text-sm shadow-sm focus:border-maroon-600 focus:ring-maroon-600">
+        <p class="mt-1 text-xs text-maroon-700">Pemberitahuan muncul saat progress project mencapai angka ini.</p>
+        @if ($useOld) <x-input-error :messages="$errors->get('trigger_progress')" class="mt-1" /> @endif
     </div>
 
     <div class="lg:col-span-2">

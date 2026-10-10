@@ -49,7 +49,7 @@
             <div class="rounded-xl border border-maroon-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wide text-maroon-700">Actual Cost Total</p>
                 <p class="mt-2 text-xl font-semibold"><x-money :amount="$context->totalActual" /></p>
-                <p class="mt-1 text-xs text-maroon-700">BMHP <x-money :amount="$context->bmhpActual" /> + Payment <x-money :amount="$context->paymentActual" /></p>
+                <p class="mt-1 text-xs text-maroon-700">BMHP <x-money :amount="$context->bmhpActual" /> + Sewa Alat <x-money :amount="$context->rentalActual" /> + Payment <x-money :amount="$context->paymentActual" /></p>
             </div>
         </div>
 

@@ -68,14 +68,6 @@
                                   x-data="{ submitting: false }" @submit="submitting = true">
                                 @csrf @method('PATCH')
                                 <div>
-                                    <x-input-label value="Kategori *" />
-                                    <select name="category" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
-                                        @foreach (\App\Enums\BoqItemCategory::cases() as $category)
-                                            <option value="{{ $category->value }}" @selected(old('category', $item->category?->value) === $category->value)>{{ $category->label() }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
                                     <x-input-label value="Qty *" />
                                     <input type="number" step="0.01" min="0" name="quantity" value="{{ old('quantity', $item->quantity) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                 </div>
@@ -84,8 +76,12 @@
                                     <input type="text" name="unit" value="{{ old('unit', $item->unit) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                 </div>
                                 <div>
-                                    <x-input-label value="Unit Price *" />
-                                    <input type="number" step="0.01" min="0" name="unit_price" value="{{ old('unit_price', $item->unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                    <x-input-label value="Harga Material *" />
+                                    <input type="number" step="0.01" min="0" name="material_unit_price" value="{{ old('material_unit_price', $item->material_unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                </div>
+                                <div>
+                                    <x-input-label value="Harga Jasa *" />
+                                    <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', $item->service_unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                 </div>
                                 <div class="flex items-end">
                                     <button class="w-full rounded-md bg-maroon-800 px-3 py-2 text-sm text-white disabled:opacity-60" :disabled="submitting"
@@ -94,6 +90,7 @@
                             </form>
                             <p class="mt-2 text-xs text-maroon-700">
                                 Current total: <x-money :amount="$item->total_price" />
+                                · Material <x-money :amount="$item->materialTotal()" /> · Jasa <x-money :amount="$item->serviceTotal()" />
                             </p>
                         @endcan
                     @endif

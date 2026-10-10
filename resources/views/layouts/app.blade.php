@@ -41,7 +41,7 @@
                 Dashboard
             </a>
             <a href="{{ route('projects.index') }}"
-               class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('projects.*') || (request()->routeIs('boqs.*') && ! request()->routeIs('boqs.approvals', 'boqs.review')) || request()->routeIs('payment*') || request()->routeIs('progress.*') || request()->routeIs('bmhp-purchases.*')) }}">
+               class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('projects.*') || (request()->routeIs('boqs.*') && ! request()->routeIs('boqs.approvals', 'boqs.review')) || request()->routeIs('payment*') || request()->routeIs('progress.*') || request()->routeIs('procurement-requests.*')) }}">
                 Projects
             </a>
             @if (Auth::user()->hasPermission(\App\Enums\Permission::BoqReview))
@@ -63,12 +63,6 @@
                 <a href="{{ route('assets.index') }}"
                    class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('assets.*')) }}">
                     Assets
-                </a>
-            @endcan
-            @can('viewAny', \App\Models\MasterBmhp::class)
-                <a href="{{ route('master-bmhps.index') }}"
-                   class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('master-bmhps.*')) }}">
-                    Master BMHP
                 </a>
             @endcan
             @if (Auth::user()->hasPermission(\App\Enums\Permission::ReportView))

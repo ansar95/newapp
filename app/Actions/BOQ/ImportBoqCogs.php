@@ -2,7 +2,6 @@
 
 namespace App\Actions\BOQ;
 
-use App\Enums\BoqItemCategory;
 use App\Enums\BoqStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Boq;
@@ -12,7 +11,6 @@ use App\Support\BoqCogsCsv;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ImportBoqCogs
@@ -67,15 +65,14 @@ class ImportBoqCogs
                     'item_code' => ['required', 'string', 'max:50'],
                     'item_name' => ['required', 'string', 'max:255'],
                     'item_description' => ['nullable', 'string'],
-                    'item_category' => ['required', Rule::enum(BoqItemCategory::class)],
                     'quantity' => ['required', 'numeric', 'min:0'],
                     'unit' => ['required', 'string', 'max:50'],
-                    'unit_price' => ['required', 'numeric', 'min:0'],
+                    'material_price' => ['required', 'numeric', 'min:0'],
+                    'service_price' => ['nullable', 'numeric', 'min:0'],
                 ], [
                     'required' => 'Baris '.$line.': kolom :attribute wajib diisi.',
                     'numeric' => 'Baris '.$line.': kolom :attribute harus berupa angka.',
                     'min' => 'Baris '.$line.': kolom :attribute tidak valid.',
-                    'item_category' => 'Baris '.$line.': item_category harus consumable atau main_material.',
                 ])->validate();
 
                 $nameKey = mb_strtolower($validated['cogs_name']);
@@ -103,8 +100,8 @@ class ImportBoqCogs
                     'description' => $validated['item_description'] ?? null,
                     'quantity' => $validated['quantity'],
                     'unit' => $validated['unit'],
-                    'unit_price' => $validated['unit_price'],
-                    'category' => $validated['item_category'],
+                    'material_unit_price' => $validated['material_price'],
+                    'service_unit_price' => filled($validated['service_price'] ?? null) ? $validated['service_price'] : 0,
                 ]);
 
                 $cogs->setRelation('items', $cogs->items->push($item));

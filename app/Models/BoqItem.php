@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\BoqItemCategory;
 use App\Enums\ProgressStatus;
 use App\Exceptions\InvalidProgressPercentageException;
 use App\Models\Concerns\ResolvesWithActiveProject;
@@ -22,7 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'quantity',
     'unit',
     'unit_price',
-    'category',
+    'material_unit_price',
+    'service_unit_price',
     'progress_percentage',
     'sort_order',
 ])]
@@ -38,7 +38,8 @@ class BoqItem extends Model
         'progress_percentage' => 0,
         'sort_order' => 0,
         'total_price' => 0,
-        'category' => BoqItemCategory::MainMaterial->value,
+        'material_unit_price' => 0,
+        'service_unit_price' => 0,
     ];
 
     /**
@@ -49,10 +50,11 @@ class BoqItem extends Model
         return [
             'quantity' => 'decimal:4',
             'unit_price' => 'decimal:2',
+            'material_unit_price' => 'decimal:2',
+            'service_unit_price' => 'decimal:2',
             'total_price' => 'decimal:2',
             'progress_percentage' => 'decimal:2',
             'sort_order' => 'integer',
-            'category' => BoqItemCategory::class,
         ];
     }
 
@@ -60,8 +62,27 @@ class BoqItem extends Model
     {
         static::saving(function (BoqItem $item): void {
             $item->assertValidProgressPercentage();
+            $item->syncUnitPrice();
             $item->total_price = $item->calculateTotalPrice();
         });
+    }
+
+    /**
+     * unit_price is always material + service. A lone unit_price write (legacy single-price input) is treated as the material price.
+     */
+    protected function syncUnitPrice(): void
+    {
+        if ($this->isDirty('unit_price') && ! $this->isDirty(['material_unit_price', 'service_unit_price'])) {
+            $this->material_unit_price = $this->unit_price;
+            $this->service_unit_price = 0;
+        }
+
+        $this->unit_price = number_format(
+            (float) $this->material_unit_price + (float) $this->service_unit_price,
+            2,
+            '.',
+            ''
+        );
     }
 
     protected function activeProjectRelation(): string
@@ -79,9 +100,9 @@ class BoqItem extends Model
         return $this->hasMany(BoqRevisionItem::class);
     }
 
-    public function bmhpAllocations(): HasMany
+    public function procurementAllocations(): HasMany
     {
-        return $this->hasMany(BmhpAllocation::class);
+        return $this->hasMany(ProcurementAllocation::class);
     }
 
     public function paymentPlans(): BelongsToMany
@@ -101,6 +122,19 @@ class BoqItem extends Model
         $total = (float) $this->quantity * (float) $this->unit_price;
 
         return number_format($total, 2, '.', '');
+    }
+
+    public function materialTotal(): float
+    {
+        return round((float) $this->quantity * (float) $this->material_unit_price, 2);
+    }
+
+    /**
+     * Derived from the stored total so material + service always equals total_price.
+     */
+    public function serviceTotal(): float
+    {
+        return round((float) $this->total_price - $this->materialTotal(), 2);
     }
 
     public function weightAgainstCogs(): float

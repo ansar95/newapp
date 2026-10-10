@@ -8,6 +8,7 @@
         <x-status-badge :status="$boq->status" />
         <span class="text-sm text-maroon-700">Revision {{ str_pad((string) $boq->revision_number, 2, '0', STR_PAD_LEFT) }}</span>
         <span class="text-sm font-semibold text-maroon-900">TOTAL BOQ: <x-money :amount="$boq->totalAmount()" /></span>
+        <span class="text-sm text-maroon-700">Material <x-money :amount="$boq->materialAmount()" /> · Jasa <x-money :amount="$boq->serviceAmount()" /></span>
     </div>
 
     @if ($boq->status === \App\Enums\BoqStatus::Draft)
@@ -59,7 +60,7 @@
                 @endcan
             @endif
         </div>
-        <p class="mt-2 text-xs text-maroon-700">Format CSV: cogs_name, cogs_description, item_code, item_name, item_description, item_category (consumable|main_material), quantity, unit, unit_price. Kode COGS diisi otomatis.</p>
+        <p class="mt-2 text-xs text-maroon-700">Format CSV: cogs_name, cogs_description, item_code, item_name, item_description, quantity, unit, material_price, service_price. Kode COGS diisi otomatis. File lama dengan kolom unit_price tetap diterima sebagai harga material; kolom item_category diabaikan.</p>
     </div>
 
     <div class="mb-6 flex flex-wrap gap-2"
@@ -150,20 +151,23 @@
         <div class="mb-4 rounded-xl border border-maroon-200 bg-white p-5 shadow-sm">
             <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h3 class="font-semibold uppercase tracking-wide text-maroon-950">{{ $cogs->name }}</h3>
-                <p class="text-sm font-medium">Total: <x-money :amount="$cogs->totalAmount()" /></p>
+                <p class="text-sm font-medium">
+                    Total: <x-money :amount="$cogs->totalAmount()" />
+                    <span class="ml-1 text-xs font-normal text-maroon-700">Material <x-money :amount="$cogs->materialAmount()" /> · Jasa <x-money :amount="$cogs->serviceAmount()" /></span>
+                </p>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead class="bg-maroon-50 text-left text-xs uppercase text-maroon-700">
                     <tr>
                         <th class="px-3 py-2">Item</th>
-                        <th class="px-3 py-2">Kategori</th>
                         <th class="px-3 py-2">Qty</th>
                         <th class="px-3 py-2">Unit</th>
-                        <th class="px-3 py-2">Unit Price</th>
+                        <th class="px-3 py-2">Harga Satuan</th>
                         <th class="px-3 py-2">Total</th>
                         @if ($actualCost)
                             <th class="px-3 py-2">BMHP</th>
+                            <th class="px-3 py-2">Sewa Alat</th>
                             <th class="px-3 py-2">Payment</th>
                             <th class="px-3 py-2">Total Actual</th>
                             <th class="px-3 py-2">Variance</th>
@@ -184,17 +188,23 @@
                                 <div class="font-medium">{{ $item->name }}</div>
                                 <div class="text-xs text-maroon-700">{{ $item->code }}</div>
                             </td>
-                            <td class="px-3 py-2 text-xs">{{ $item->category?->label() ?? 'Material Utama' }}</td>
                             <td class="px-3 py-2">{{ number_format((float) $item->quantity, 2) }}</td>
                             <td class="px-3 py-2">{{ $item->unit }}</td>
-                            <td class="px-3 py-2"><x-money :amount="$item->unit_price" /></td>
-                            <td class="px-3 py-2 font-medium"><x-money :amount="$item->total_price" /></td>
+                            <td class="px-3 py-2 whitespace-nowrap">
+                                <x-money :amount="$item->unit_price" />
+                                <div class="text-xs text-maroon-700">M <x-money :amount="$item->material_unit_price" /> · J <x-money :amount="$item->service_unit_price" /></div>
+                            </td>
+                            <td class="px-3 py-2 whitespace-nowrap">
+                                <span class="font-medium"><x-money :amount="$item->total_price" /></span>
+                                <div class="text-xs text-maroon-700">M <x-money :amount="$item->materialTotal()" /> · J <x-money :amount="$item->serviceTotal()" /></div>
+                            </td>
                             @if ($actualCost)
                                 @php
                                     $itemActual = $actualCost->forItem($item);
                                     $itemVariance = \App\Support\ProjectActualCost::variance((float) $item->total_price, $itemActual);
                                 @endphp
                                 <td class="px-3 py-2 whitespace-nowrap"><x-money :amount="$actualCost->bmhpForItem($item)" /></td>
+                                <td class="px-3 py-2 whitespace-nowrap"><x-money :amount="$actualCost->rentalForItem($item)" /></td>
                                 <td class="px-3 py-2 whitespace-nowrap"><x-money :amount="$actualCost->paymentForItem($item)" /></td>
                                 <td class="px-3 py-2 whitespace-nowrap font-medium"><x-money :amount="$itemActual" /></td>
                                 <td @class(['px-3 py-2 whitespace-nowrap', 'font-semibold text-red-700' => $itemVariance < 0])><x-money :amount="$itemVariance" /></td>
@@ -213,15 +223,7 @@
                                                     <x-input-label value="Item Name *" />
                                                     <input type="text" name="name" value="{{ old('name', $item->name) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                                 </div>
-                                                <div>
-                                                    <x-input-label value="Kategori *" />
-                                                    <select name="category" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
-                                                        @foreach (\App\Enums\BoqItemCategory::cases() as $category)
-                                                            <option value="{{ $category->value }}" @selected(old('category', $item->category?->value) === $category->value)>{{ $category->label() }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="grid grid-cols-3 gap-2">
+                                                <div class="grid grid-cols-2 gap-2">
                                                     <div>
                                                         <x-input-label value="Qty *" />
                                                         <input type="number" step="0.01" min="0" name="quantity" value="{{ old('quantity', $item->quantity) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
@@ -231,8 +233,12 @@
                                                         <input type="text" name="unit" value="{{ old('unit', $item->unit) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                                     </div>
                                                     <div>
-                                                        <x-input-label value="Unit Price *" />
-                                                        <input type="number" step="0.01" min="0" name="unit_price" value="{{ old('unit_price', $item->unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                                        <x-input-label value="Harga Material *" />
+                                                        <input type="number" step="0.01" min="0" name="material_unit_price" value="{{ old('material_unit_price', $item->material_unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                                    </div>
+                                                    <div>
+                                                        <x-input-label value="Harga Jasa *" />
+                                                        <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', $item->service_unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                                     </div>
                                                 </div>
                                                 <button class="rounded-md bg-maroon-800 px-3 py-1.5 text-xs text-white disabled:opacity-60" :disabled="submitting"
@@ -248,6 +254,7 @@
                 </table>
             </div>
             <p class="mt-3 text-right text-sm font-semibold">COGS TOTAL: <x-money :amount="$cogs->totalAmount()" /></p>
+            <p class="text-right text-xs text-maroon-700">Material <x-money :amount="$cogs->materialAmount()" /> · Jasa <x-money :amount="$cogs->serviceAmount()" /></p>
             @if ($actualCost)
                 @php
                     $cogsActual = $actualCost->forCogs($cogs);
@@ -256,9 +263,9 @@
                     <p class="text-xs font-bold uppercase tracking-wide text-maroon-800 sm:col-span-4">Cost Realization COGS</p>
                     <div><span class="text-maroon-700">BOQ</span><p class="font-semibold"><x-money :amount="$cogs->totalAmount()" /></p></div>
                     <div>
-                        <span class="text-maroon-700">Actual (BMHP + Payment)</span>
+                        <span class="text-maroon-700">Actual (BMHP + Sewa Alat + Payment)</span>
                         <p class="font-semibold"><x-money :amount="$cogsActual" /></p>
-                        <p class="text-xs text-maroon-700"><x-money :amount="$actualCost->bmhpForCogs($cogs)" /> + <x-money :amount="$actualCost->paymentForCogs($cogs)" /></p>
+                        <p class="text-xs text-maroon-700"><x-money :amount="$actualCost->bmhpForCogs($cogs)" /> + <x-money :amount="$actualCost->rentalForCogs($cogs)" /> + <x-money :amount="$actualCost->paymentForCogs($cogs)" /></p>
                     </div>
                     <div><span class="text-maroon-700">Variance</span><p class="font-semibold"><x-money :amount="\App\Support\ProjectActualCost::variance($cogs->totalAmount(), $cogsActual)" /></p></div>
                     <div>
@@ -273,24 +280,16 @@
 
             @if ($boq->status === \App\Enums\BoqStatus::Draft)
                 @can('update', $boq)
-                    <form method="POST" action="{{ route('boqs.items.store', $cogs) }}" class="mt-4 grid gap-3 rounded-md border border-dashed border-maroon-300 p-4 sm:grid-cols-7"
+                    <form method="POST" action="{{ route('boqs.items.store', $cogs) }}" class="mt-4 grid gap-3 rounded-md border border-dashed border-maroon-300 p-4 sm:grid-cols-8"
                           x-data="{ submitting: false }" @submit="submitting = true">
                         @csrf
                         <div>
                             <x-input-label value="Code *" />
                             <input type="text" name="code" value="{{ old('code') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                         </div>
-                        <div class="sm:col-span-2">
+                        <div class="sm:col-span-3">
                             <x-input-label value="Item Name *" />
                             <input type="text" name="name" value="{{ old('name') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
-                        </div>
-                        <div>
-                            <x-input-label value="Kategori *" />
-                            <select name="category" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
-                                @foreach (\App\Enums\BoqItemCategory::cases() as $category)
-                                    <option value="{{ $category->value }}" @selected(old('category', 'main_material') === $category->value)>{{ $category->label() }}</option>
-                                @endforeach
-                            </select>
                         </div>
                         <div>
                             <x-input-label value="Qty *" />
@@ -300,10 +299,14 @@
                             <x-input-label value="Unit *" />
                             <input type="text" name="unit" value="{{ old('unit') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                         </div>
+                        <div>
+                            <x-input-label value="Harga Material *" />
+                            <input type="number" step="0.01" min="0" name="material_unit_price" value="{{ old('material_unit_price', 0) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                        </div>
                         <div class="flex items-end gap-2">
                             <div class="flex-1">
-                                <x-input-label value="Unit Price *" />
-                                <input type="number" step="0.01" min="0" name="unit_price" value="{{ old('unit_price') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                <x-input-label value="Harga Jasa *" />
+                                <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', 0) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                             </div>
                             <button class="rounded-md bg-maroon-700 px-3 py-2 text-xs text-white disabled:opacity-60" :disabled="submitting">Add</button>
                         </div>
@@ -344,6 +347,10 @@
         <div class="flex items-center justify-between">
             <span class="text-sm font-medium uppercase tracking-wide text-maroon-200">TOTAL BOQ</span>
             <span class="text-xl font-semibold"><x-money :amount="$boq->totalAmount()" /></span>
+        </div>
+        <div class="mt-2 flex flex-wrap justify-end gap-4 text-sm text-maroon-100">
+            <span>Total Material: <strong class="text-white"><x-money :amount="$boq->materialAmount()" /></strong></span>
+            <span>Total Jasa: <strong class="text-white"><x-money :amount="$boq->serviceAmount()" /></strong></span>
         </div>
     </div>
 

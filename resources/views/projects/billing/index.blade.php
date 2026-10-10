@@ -21,6 +21,9 @@
         <x-helper-text class="mt-1" text="Penagihan adalah pemasukan dari client, terpisah dari Payment (pengeluaran). Penagihan tidak mengubah BOQ, progress, BMHP, maupun Payment." />
     </div>
 
+    <x-billing-due-alert :summary="$summary" :progress="$context->overallProgress" :project="$project"
+                         :can-manage-terms="$canManageTerms" :can-create-billing="$canCreateBilling" class="mb-6" />
+
     <x-billing-summary :summary="$summary" :progress="$context->overallProgress" class="mb-6" />
 
     @unless (\App\Models\ClientBilling::projectAcceptsBilling($project))
@@ -86,7 +89,7 @@
                             $termStatus = $summary->termStatus($term);
                             $termPercentage = $term->isPercentage()
                                 ? (float) $term->percentage
-                                : \App\Support\BmhpActualCost::percentage($summary->contractValue(), (float) $term->amount);
+                                : \App\Support\ProjectActualCost::percentage($summary->contractValue(), (float) $term->amount);
                             $canEditTerm = auth()->user()->can('update', $term);
                             $hasActiveBilling = $summary->termReserved($term) > 0;
                         @endphp
@@ -95,9 +98,12 @@
                         <tr class="{{ $term->isCancelled() ? 'text-maroon-400' : 'hover:bg-maroon-50' }}">
                             <td class="px-4 py-3">
                                 <span class="font-medium text-maroon-950">{{ $term->displayName() }}</span>
+                                @if ($term->isTriggerReached((float) $context->overallProgress) && $summary->termRemaining($term) > 0)
+                                    <span class="ml-1 rounded bg-maroon-800 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">Siap ditagih</span>
+                                @endif
                                 <span class="block text-xs text-maroon-700">
-                                    {{ $term->trigger_type->label() }}@if ($term->trigger_value): {{ $term->trigger_value }}@endif
-                                    @if ($term->due_date) · Target <x-date-display :value="$term->due_date" /> @endif
+                                    {{ $term->triggerDescription() }}@if ($term->trigger_value): {{ $term->trigger_value }}@endif
+                                    @if ($term->due_date && $term->trigger_type !== \App\Enums\ProjectTermTriggerType::Date) · Target <x-date-display :value="$term->due_date" /> @endif
                                     · {{ $billingsByTerm->get($term->id)?->count() ?? 0 }} penagihan
                                 </span>
                             </td>

@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
             RoleUserSeeder::class,
             ProjectManagementSeeder::class,
             AssetSeeder::class,
-            BmhpSeeder::class,
+            ProcurementSeeder::class,
             BillingSeeder::class,
             DocumentSeeder::class,
         ]);
