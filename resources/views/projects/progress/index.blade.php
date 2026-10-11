@@ -44,14 +44,14 @@
     @if (! $approvedBoq)
         <x-empty-state
             title="Belum ada progress yang dapat ditampilkan."
-            description="Progress tersedia setelah BOQ disetujui dan payment diproses."
+            description="Progress tersedia setelah BOQ disetujui."
             action-label="View BOQ"
             :action-url="route('projects.boq.index', $project)"
         />
     @else
         @if (! $canUpdate)
             <div class="mb-4 rounded-xl border border-maroon-300 bg-maroon-100 p-4 text-sm text-maroon-900">
-                Progress dapat diperbarui setelah payment berstatus PAID.
+                Anda hanya dapat melihat progress. Update progress dilakukan oleh role yang berwenang.
             </div>
         @endif
 

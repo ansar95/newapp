@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\BOQ\RequestRevision;
 use App\Actions\Payment\CreatePaymentPlan;
 use App\Actions\Payment\PaymentAllocationMath;
 use App\Actions\Payment\ProcessPayment;
@@ -80,6 +81,51 @@ class PaymentActualCostTest extends TestCase
 
         $this->assertSame('2750000.00', (string) $plan->amount);
         $this->assertSame([$this->items['ITEM-E01']->id], $plan->items->pluck('id')->all());
+    }
+
+    public function test_saved_plans_appear_in_payment_plan_list(): void
+    {
+        foreach ([
+            ['PP-LIST-PLANNED', PaymentPlanType::Planned->value, now()->addWeek()->toDateString()],
+            ['PP-LIST-READY', PaymentPlanType::ReadyToPay->value, null],
+        ] as [$code, $type, $plannedDate]) {
+            $this->actingAs($this->admin)
+                ->post(route('payment-plans.store', $this->project), [
+                    'reference_code' => $code,
+                    'type' => $type,
+                    'planned_date' => $plannedDate,
+                    'items' => [
+                        $this->items['ITEM-E01']->id => ['selected' => '1', 'boq_item_id' => $this->items['ITEM-E01']->id, 'planned_amount' => '1000000'],
+                    ],
+                ])
+                ->assertRedirect()
+                ->assertSessionHasNoErrors();
+        }
+
+        $this->actingAs($this->admin)
+            ->get(route('projects.payment.index', $this->project))
+            ->assertOk()
+            ->assertDontSee('Buat payment plan untuk memproses pembayaran.')
+            ->assertSee('PP-LIST-PLANNED')
+            ->assertSee('PP-LIST-READY');
+    }
+
+    public function test_payment_plans_stay_visible_read_only_while_boq_is_revised(): void
+    {
+        $this->makeReadyPlan('PP-REV-001', ['ITEM-E01' => 1000000]);
+
+        app(RequestRevision::class)->handle($this->admin, $this->boq->fresh(), [
+            'reason' => 'Harga perlu disesuaikan',
+            'item_ids' => [$this->items['ITEM-E01']->id],
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('projects.payment.index', $this->project))
+            ->assertOk()
+            ->assertSee('BOQ sedang direvisi.')
+            ->assertSee('PP-REV-001')
+            ->assertDontSee('Buat Rencana Pembayaran')
+            ->assertDontSee('Process Payment');
     }
 
     public function test_payment_can_exceed_plan_and_boq_when_reason_is_given(): void
@@ -277,7 +323,7 @@ class PaymentActualCostTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_progress_still_requires_a_paid_payment(): void
+    public function test_progress_does_not_depend_on_payment_status(): void
     {
         $plan = $this->makeReadyPlan('PP-012', ['ITEM-E01' => 2000000]);
         $payment = $this->pay($plan, 2000000, ['ITEM-E01' => 2000000]);
@@ -286,10 +332,9 @@ class PaymentActualCostTest extends TestCase
 
         app(VoidPayment::class)->handle($this->admin, $payment, ['void_reason' => 'Batal']);
 
-        $this->expectException(BusinessRuleException::class);
-        $this->expectExceptionMessage('PAID');
+        $item = app(UpdateItemProgress::class)->handle($this->admin, $this->items['ITEM-E01']->fresh(), 50);
 
-        app(UpdateItemProgress::class)->handle($this->admin, $this->items['ITEM-E01']->fresh(), 50);
+        $this->assertSame('50.00', (string) $item->progress_percentage);
     }
 
     public function test_payment_does_not_change_boq_baseline(): void

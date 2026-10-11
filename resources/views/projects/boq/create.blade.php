@@ -77,7 +77,10 @@
                         <tbody>
                         <template x-for="(item, ii) in cogs.items" :key="ii">
                             <tr class="border-t border-maroon-100">
-                                <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][code]`" x-model="item.code" class="w-24 rounded-md border-maroon-300 text-sm" required></td>
+                                <td class="px-2 py-2">
+                                    <input type="text" :name="`cogs[${ci}][items][${ii}][code]`" x-model="item.code" class="w-24 rounded-md border-maroon-300 text-sm" required>
+                                    <input type="hidden" :name="`cogs[${ci}][items][${ii}][notes]`" :value="item.notes || ''">
+                                </td>
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][name]`" x-model="item.name" class="w-full rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][quantity]`" x-model.number="item.quantity" class="w-24 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][unit]`" x-model="item.unit" class="w-20 rounded-md border-maroon-300 text-sm" required></td>
@@ -243,7 +246,8 @@
                                     quantity: Number(cols[index.quantity] || 0),
                                     unit: cols[index.unit] || 'ls',
                                     material_unit_price: Number(cols[index[materialColumn]] || 0),
-                                    service_unit_price: 'service_price' in index ? Number(cols[index.service_price] || 0) : 0
+                                    service_unit_price: 'service_price' in index ? Number(cols[index.service_price] || 0) : 0,
+                                    notes: 'item_notes' in index ? (cols[index.item_notes] || '') : ''
                                 });
                             }
 
@@ -263,7 +267,7 @@
                     reader.readAsText(file);
                 },
                 exportCsv() {
-                    const headers = ['cogs_name', 'cogs_description', 'item_code', 'item_name', 'item_description', 'quantity', 'unit', 'material_price', 'service_price'];
+                    const headers = ['cogs_name', 'cogs_description', 'item_code', 'item_name', 'item_description', 'quantity', 'unit', 'material_price', 'service_price', 'item_notes'];
                     const rows = [headers.join(',')];
 
                     this.cogsList.forEach((cogs) => {
@@ -277,7 +281,8 @@
                                 item.quantity,
                                 this.csvEscape(item.unit),
                                 item.material_unit_price,
-                                item.service_unit_price
+                                item.service_unit_price,
+                                this.csvEscape(item.notes || '')
                             ].join(','));
                         });
                     });

@@ -69,10 +69,12 @@ class ImportBoqCogs
                     'unit' => ['required', 'string', 'max:50'],
                     'material_price' => ['required', 'numeric', 'min:0'],
                     'service_price' => ['nullable', 'numeric', 'min:0'],
+                    'item_notes' => ['nullable', 'string', 'max:255'],
                 ], [
                     'required' => 'Baris '.$line.': kolom :attribute wajib diisi.',
                     'numeric' => 'Baris '.$line.': kolom :attribute harus berupa angka.',
                     'min' => 'Baris '.$line.': kolom :attribute tidak valid.',
+                    'item_notes.max' => 'Baris '.$line.': kolom item_notes maksimal 255 karakter.',
                 ])->validate();
 
                 $nameKey = mb_strtolower($validated['cogs_name']);
@@ -102,6 +104,7 @@ class ImportBoqCogs
                     'unit' => $validated['unit'],
                     'material_unit_price' => $validated['material_price'],
                     'service_unit_price' => filled($validated['service_price'] ?? null) ? $validated['service_price'] : 0,
+                    'notes' => $validated['item_notes'] ?? null,
                 ]);
 
                 $cogs->setRelation('items', $cogs->items->push($item));

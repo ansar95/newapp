@@ -16,7 +16,7 @@
         <x-workflow-steps :steps="$context->workflowSteps" />
     </div>
 
-    @if (! $approvedBoq)
+    @if (! $approvedBoq && $plans->isEmpty())
         <x-empty-state
             title="Belum ada payment plan."
             description="Payment planning tersedia setelah BOQ disetujui."
@@ -24,6 +24,13 @@
             :action-url="route('projects.boq.index', $project)"
         />
     @else
+        @unless ($approvedBoq)
+            <div role="status" class="mb-4 rounded-xl border border-maroon-300 bg-maroon-100 p-4 text-sm text-maroon-900">
+                <p class="font-semibold">BOQ sedang direvisi.</p>
+                <p class="mt-1">Selama BOQ direvisi, daftar payment plan hanya dapat dilihat. Plan baru dan proses pembayaran dilanjutkan setelah BOQ disetujui kembali.</p>
+            </div>
+        @endunless
+
         <div class="mb-4 rounded-xl border border-maroon-200 bg-white p-4">
             <p class="text-sm font-medium text-maroon-900">Payment adalah actual cost yang benar-benar dibayarkan.</p>
             <x-helper-text class="mt-1" text="Nilai rencana dan nilai bayar boleh berbeda dari BOQ, bahkan melebihi BOQ. Setiap pembayaran wajib dialokasikan ke item BOQ. Progress pekerjaan tetap diupdate terpisah." />
@@ -53,6 +60,7 @@
             </div>
         </div>
 
+        @if ($approvedBoq)
         @can('create', [\App\Models\PaymentPlan::class, $project])
             @php
                 $oldItems = collect(old('items', []));
@@ -189,6 +197,7 @@
                 @endif
             </div>
         @endcan
+        @endif
 
         <div class="overflow-hidden rounded-xl border border-maroon-200 bg-white shadow-sm" x-data="{ payPlan: null, payAmount: null, payUrl: null }">
             @if ($plans->isEmpty())
@@ -249,6 +258,9 @@
                                 <td class="px-4 py-3 whitespace-nowrap"><x-date-display :value="$plan->planned_date" /></td>
                                 <td class="px-4 py-3"><x-status-badge :status="$plan->status" /></td>
                                 <td class="px-4 py-3 space-x-2 whitespace-nowrap">
+                                    @unless ($approvedBoq)
+                                        <span class="text-maroon-400">—</span>
+                                    @else
                                     @if ($plan->status === \App\Enums\PaymentPlanStatus::Planned)
                                         @can('markReady', $plan)
                                             <form method="POST" action="{{ route('payment-plans.ready', $plan) }}" class="inline" x-data="{ submitting: false }" @submit="submitting = true">
@@ -275,6 +287,7 @@
                                             <a href="{{ route('projects.progress.index', $project) }}" class="font-medium text-maroon-900 hover:underline">View Progress</a>
                                         @endif
                                     @endif
+                                    @endunless
                                 </td>
                             </tr>
                             @if ($plan->payments->isNotEmpty())
@@ -294,6 +307,7 @@
                                                             <span class="text-maroon-700"><x-date-display :value="$payment->payment_date" /></span>
                                                             <span class="font-semibold text-maroon-950"><x-money :amount="$payment->amount" /></span>
                                                         </div>
+                                                        @if ($approvedBoq)
                                                         @can('void', $payment)
                                                             <details class="text-right">
                                                                 <summary class="cursor-pointer font-medium text-maroon-900 hover:underline">Void</summary>
@@ -308,6 +322,7 @@
                                                                 </form>
                                                             </details>
                                                         @endcan
+                                                        @endif
                                                     </div>
                                                     @if ($payment->allocations->isNotEmpty())
                                                         <ul class="mt-2 grid gap-1 sm:grid-cols-2">

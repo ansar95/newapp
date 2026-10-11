@@ -22,15 +22,16 @@ class BoqCogsCsv
         'unit',
         'material_price',
         'service_price',
+        'item_notes',
     ];
 
     public static function templateCsv(): string
     {
         $rows = [
             self::HEADERS,
-            ['Engineering', 'Design works', 'ITEM-E01', 'Design Drawing', '', '1', 'ls', '0', '2000000'],
-            ['Engineering', 'Design works', 'ITEM-E02', 'Structural Calculation', '', '1', 'ls', '0', '3000000'],
-            ['Installation', 'Site works', 'ITEM-I01', 'Cable Tray', '', '10', 'm', '75000', '25000'],
+            ['Engineering', 'Design works', 'ITEM-E01', 'Design Drawing', '', '1', 'ls', '0', '2000000', ''],
+            ['Engineering', 'Design works', 'ITEM-E02', 'Structural Calculation', '', '1', 'ls', '0', '3000000', ''],
+            ['Installation', 'Site works', 'ITEM-I01', 'Cable Tray', '', '10', 'm', '75000', '25000', 'Termasuk aksesoris'],
         ];
 
         return self::rowsToCsv($rows);
@@ -54,6 +55,7 @@ class BoqCogsCsv
                     $item->unit,
                     self::formatNumber($item->material_unit_price),
                     self::formatNumber($item->service_unit_price),
+                    (string) ($item->notes ?? ''),
                 ];
             }
         }
@@ -72,6 +74,7 @@ class BoqCogsCsv
      *     unit: string,
      *     material_price: string,
      *     service_price: string,
+     *     item_notes: string|null,
      *     _line: int
      * }>
      */
@@ -147,6 +150,9 @@ class BoqCogsCsv
                     'service_price' => isset($index['service_price'])
                         ? trim((string) ($data[$index['service_price']] ?? ''))
                         : '',
+                    'item_notes' => isset($index['item_notes'])
+                        ? self::nullableTrim($data[$index['item_notes']] ?? null)
+                        : null,
                     '_line' => $line,
                 ]);
             }

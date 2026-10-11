@@ -126,6 +126,108 @@ class BoqCogsImportExportTest extends TestCase
         ]);
     }
 
+    public function test_add_item_stores_notes_and_shows_them_on_boq_page(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-NOTE']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-NOTE');
+        $cogs = $boq->cogs->first();
+
+        $this->actingAs($actor)
+            ->post(route('boqs.items.store', $cogs), [
+                'code' => 'ITEM-NOTE',
+                'name' => 'Kabel NYY',
+                'quantity' => 10,
+                'unit' => 'm',
+                'material_unit_price' => 50000,
+                'service_unit_price' => 0,
+                'notes' => 'Termasuk aksesoris',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-NOTE', 'notes' => 'Termasuk aksesoris']);
+
+        $this->actingAs($actor)
+            ->get(route('boqs.show', $boq))
+            ->assertOk()
+            ->assertSee('Keterangan')
+            ->assertSee('name="notes"', false)
+            ->assertSee('Termasuk aksesoris');
+    }
+
+    public function test_add_item_rejects_notes_longer_than_255_characters(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-NOTE2']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-NOTE2');
+
+        $this->actingAs($actor)
+            ->post(route('boqs.items.store', $boq->cogs->first()), [
+                'code' => 'ITEM-LONG',
+                'name' => 'Item',
+                'quantity' => 1,
+                'unit' => 'ls',
+                'material_unit_price' => 1000,
+                'service_unit_price' => 0,
+                'notes' => str_repeat('a', 256),
+            ])
+            ->assertSessionHasErrors(['notes' => 'Keterangan maksimal 255 karakter.']);
+
+        $this->assertDatabaseMissing('boq_items', ['code' => 'ITEM-LONG']);
+    }
+
+    public function test_csv_import_and_export_include_item_notes(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-NCSV']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-NCSV');
+
+        $csv = BoqCogsCsv::rowsToCsv([
+            BoqCogsCsv::HEADERS,
+            ['Procurement', '', 'ITEM-N01', 'Panel', '', '1', 'set', '7500000', '0', 'Merk Schneider'],
+        ]);
+
+        $this->actingAs($actor)
+            ->post(route('boqs.cogs.import', $boq), ['file' => UploadedFile::fake()->createWithContent('cogs.csv', $csv)])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-N01', 'notes' => 'Merk Schneider']);
+
+        $content = $this->actingAs($actor)
+            ->get(route('boqs.cogs.export', $boq))
+            ->assertOk()
+            ->streamedContent();
+
+        $this->assertStringContainsString('service_price,item_notes', $content);
+        $this->assertStringContainsString('ITEM-N01,Panel,,1,set,7500000,0,"Merk Schneider"', $content);
+    }
+
+    public function test_create_boq_stores_item_notes(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-NCRT']);
+
+        $this->makeDraftBoq($actor, $project, cogs: [
+            [
+                'name' => 'Engineering',
+                'items' => [
+                    [
+                        'code' => 'ITEM-C01',
+                        'name' => 'Design',
+                        'quantity' => 1,
+                        'unit' => 'ls',
+                        'material_unit_price' => 1000000,
+                        'notes' => 'Dari import CSV',
+                    ],
+                ],
+            ],
+        ], code: 'BOQ-NCRT');
+
+        $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-C01', 'notes' => 'Dari import CSV']);
+    }
+
     public function test_cannot_import_cogs_when_boq_is_approved(): void
     {
         $actor = $this->makeSuperadmin();

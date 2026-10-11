@@ -60,7 +60,7 @@
                 @endcan
             @endif
         </div>
-        <p class="mt-2 text-xs text-maroon-700">Format CSV: cogs_name, cogs_description, item_code, item_name, item_description, quantity, unit, material_price, service_price. Kode COGS diisi otomatis. File lama dengan kolom unit_price tetap diterima sebagai harga material; kolom item_category diabaikan.</p>
+        <p class="mt-2 text-xs text-maroon-700">Format CSV: cogs_name, cogs_description, item_code, item_name, item_description, quantity, unit, material_price, service_price, item_notes (keterangan, opsional). Kode COGS diisi otomatis. File lama dengan kolom unit_price tetap diterima sebagai harga material; kolom item_category diabaikan.</p>
     </div>
 
     <div class="mb-6 flex flex-wrap gap-2"
@@ -174,6 +174,7 @@
                             <th class="px-3 py-2">Actual Cost</th>
                         @endif
                         <th class="px-3 py-2">Progress</th>
+                        <th class="px-3 py-2">Keterangan</th>
                         @if ($boq->status === \App\Enums\BoqStatus::Draft)
                             @can('update', $boq)
                                 <th class="px-3 py-2">Action</th>
@@ -211,6 +212,7 @@
                                 <td class="px-3 py-2"><x-percent :value="\App\Support\ProjectActualCost::percentage((float) $item->total_price, $itemActual)" /></td>
                             @endif
                             <td class="px-3 py-2"><x-percent :value="$item->progress_percentage" :decimals="1" /></td>
+                            <td class="min-w-[10rem] max-w-xs px-3 py-2 text-maroon-800">{{ $item->notes ?? '-' }}</td>
                             @if ($boq->status === \App\Enums\BoqStatus::Draft)
                                 @can('update', $boq)
                                     <td class="px-3 py-2">
@@ -303,12 +305,18 @@
                             <x-input-label value="Harga Material *" />
                             <input type="number" step="0.01" min="0" name="material_unit_price" value="{{ old('material_unit_price', 0) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                         </div>
-                        <div class="flex items-end gap-2">
-                            <div class="flex-1">
-                                <x-input-label value="Harga Jasa *" />
-                                <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', 0) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
-                            </div>
-                            <button class="rounded-md bg-maroon-700 px-3 py-2 text-xs text-white disabled:opacity-60" :disabled="submitting">Add</button>
+                        <div>
+                            <x-input-label value="Harga Jasa *" />
+                            <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', 0) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                        </div>
+                        <div class="sm:col-span-7">
+                            <x-input-label value="Keterangan" />
+                            <input type="text" name="notes" maxlength="255" value="{{ old('notes') }}" placeholder="Opsional, contoh: termasuk aksesoris / merk tertentu"
+                                   class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                            <x-input-error :messages="$errors->get('notes')" class="mt-1" />
+                        </div>
+                        <div class="flex items-end">
+                            <button class="w-full rounded-md bg-maroon-700 px-3 py-2 text-xs text-white disabled:opacity-60" :disabled="submitting">Add</button>
                         </div>
                     </form>
                 @endcan

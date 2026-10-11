@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Enums\BoqStatus;
-use App\Enums\PaymentPlanStatus;
 use App\Enums\Permission;
 use App\Models\BoqItem;
 use App\Models\Project;
@@ -27,15 +26,8 @@ class ProgressPolicy
             return false;
         }
 
-        $item->loadMissing('cogs.boq.paymentPlans');
-        $boq = $item->cogs?->boq;
+        $item->loadMissing('cogs.boq');
 
-        if ($boq === null || $boq->status !== BoqStatus::Approved) {
-            return false;
-        }
-
-        return $boq->paymentPlans->contains(
-            fn ($plan) => $plan->status === PaymentPlanStatus::Paid
-        );
+        return $item->cogs?->boq?->status === BoqStatus::Approved;
     }
 }

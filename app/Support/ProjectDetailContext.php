@@ -138,9 +138,10 @@ class ProjectDetailContext
         $this->actualPercentage = ProjectActualCost::percentage($this->totalBoqValue, $this->totalActual);
         $this->actualVariance = ProjectActualCost::variance($this->totalBoqValue, $this->totalActual);
 
-        $approvedBoq = $this->project->approvedBoqs->sortByDesc('id')->first();
-        $this->paymentPlans = $approvedBoq
-            ? $approvedBoq->paymentPlans->sortByDesc('id')->values()
+        $planBoq = $this->project->approvedBoqs->sortByDesc('id')->first()
+            ?? $this->boqs->first(fn (Boq $boq) => $boq->paymentPlans->isNotEmpty());
+        $this->paymentPlans = $planBoq
+            ? $planBoq->paymentPlans->sortByDesc('id')->values()
             : collect();
 
         $this->totalPlanned = (float) $this->paymentPlans->sum(fn (PaymentPlan $plan) => (float) $plan->amount);
@@ -211,7 +212,7 @@ class ProjectDetailContext
             $paymentDetail = $hasReady ? 'READY TO PAY' : ($hasPlan ? 'PLANNED' : 'PENDING');
         }
 
-        if (! $hasPaid) {
+        if ($boq === null || ($boq->status !== BoqStatus::Approved && $this->overallProgress <= 0)) {
             $progressState = 'todo';
             $progressDetail = null;
         } elseif ($this->overallProgress >= 100) {

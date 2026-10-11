@@ -96,15 +96,36 @@ class ProgressWorkflowTest extends TestCase
         $this->assertSame(0.0, $project->fresh()->progressPercentage());
     }
 
-    public function test_cannot_update_progress_before_payment_is_paid(): void
+    public function test_progress_can_be_updated_without_payment_once_boq_is_approved(): void
     {
         $actor = $this->makeSuperadmin();
         $project = $this->makeActiveProject($actor, ['code' => 'PRJ-102']);
         $boq = $this->makeApprovedBoq($actor, $project, 'BOQ-PRJ102');
         $item = $boq->cogs->first()->items->first();
 
+        $this->actingAs($actor)
+            ->get(route('projects.progress.index', $project))
+            ->assertOk()
+            ->assertSee('open('.$item->id.',', false)
+            ->assertDontSee('payment berstatus PAID');
+
+        $this->actingAs($actor)
+            ->patch(route('progress.update', $item), ['progress_percentage' => 25])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('25.00', (string) $item->fresh()->progress_percentage);
+    }
+
+    public function test_cannot_update_progress_before_boq_is_approved(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-103']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-PRJ103');
+        $item = $boq->cogs->first()->items->first();
+
         $this->expectException(BusinessRuleException::class);
-        $this->expectExceptionMessage('setelah Payment terkait berstatus PAID');
+        $this->expectExceptionMessage('setelah BOQ berstatus APPROVED');
 
         app(UpdateItemProgress::class)->handle($actor, $item, 25);
     }

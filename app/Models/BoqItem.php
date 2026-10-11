@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'code',
     'name',
     'description',
+    'notes',
     'quantity',
     'unit',
     'unit_price',

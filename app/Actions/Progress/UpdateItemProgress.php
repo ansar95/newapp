@@ -3,7 +3,6 @@
 namespace App\Actions\Progress;
 
 use App\Enums\BoqStatus;
-use App\Enums\PaymentPlanStatus;
 use App\Enums\ProjectStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Exceptions\InvalidProgressPercentageException;
@@ -16,7 +15,7 @@ class UpdateItemProgress
 {
     public function handle(User $actor, BoqItem $item, float|int|string $progressPercentage): BoqItem
     {
-        $item->loadMissing('cogs.boq.paymentPlans');
+        $item->loadMissing('cogs.boq');
 
         $boq = $item->cogs?->boq;
 
@@ -27,12 +26,6 @@ class UpdateItemProgress
         if ($boq->status !== BoqStatus::Approved) {
             throw BusinessRuleException::make(
                 'Progress item hanya dapat diubah setelah BOQ berstatus APPROVED.'
-            );
-        }
-
-        if (! $this->boqHasPaidPayment($boq)) {
-            throw BusinessRuleException::make(
-                'Progress item hanya dapat diubah setelah Payment terkait berstatus PAID.'
             );
         }
 
@@ -69,11 +62,5 @@ class UpdateItemProgress
             $project->status = ProjectStatus::Completed;
             $project->save();
         }
-    }
-
-    private function boqHasPaidPayment(Boq $boq): bool
-    {
-        return $boq->paymentPlans
-            ->contains(fn ($plan): bool => $plan->status === PaymentPlanStatus::Paid);
     }
 }

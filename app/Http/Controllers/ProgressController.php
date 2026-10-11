@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\Progress\UpdateItemProgress;
 use App\Enums\BoqStatus;
-use App\Enums\PaymentPlanStatus;
 use App\Enums\Permission;
 use App\Models\BoqItem;
 use App\Models\Project;
@@ -24,11 +23,7 @@ class ProgressController extends Controller
         $context = ProjectDetailContext::for($project, $request->user());
         $approvedBoq = $project->approvedBoqs->sortByDesc('id')->first();
 
-        $workflowReady = $approvedBoq !== null
-            && $approvedBoq->status === BoqStatus::Approved
-            && $context->paymentPlans->contains(
-                fn ($plan) => $plan->status === PaymentPlanStatus::Paid
-            );
+        $workflowReady = $approvedBoq !== null && $approvedBoq->status === BoqStatus::Approved;
 
         $cogsProgress = [];
         if ($approvedBoq) {
