@@ -12,10 +12,16 @@ use App\Enums\Permission;
 use App\Models\Boq;
 use App\Models\BoqCogs;
 use App\Models\BoqItem;
+use App\Support\BoqCogsCsv;
 use App\Support\ProjectActualCost;
+use App\Support\SpreadsheetFile;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BoqController extends Controller
@@ -88,13 +94,7 @@ class BoqController extends Controller
     {
         $this->authorize('update', $boq);
 
-        $request->validate([
-            'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
-        ], [
-            'file.required' => 'Pilih file CSV untuk diimpor.',
-            'file.mimes' => 'File harus berformat CSV.',
-            'file.max' => 'Ukuran file maksimal 2MB.',
-        ]);
+        $request->validate(['file' => SpreadsheetFile::UPLOAD_RULES], SpreadsheetFile::uploadMessages());
 
         $result = $importBoqCogs->handle($request->user(), $boq, $request->file('file'));
 
@@ -114,5 +114,53 @@ class BoqController extends Controller
         $this->authorize('create', Boq::class);
 
         return $exportBoqCogs->template();
+    }
+
+    /**
+     * Reads an Excel/CSV COGS file for the Create BOQ form without saving anything.
+     */
+    public function parseCogsFile(Request $request): JsonResponse
+    {
+        $this->authorize('create', Boq::class);
+
+        $request->validate(['file' => SpreadsheetFile::UPLOAD_RULES], SpreadsheetFile::uploadMessages());
+
+        try {
+            $rows = BoqCogsCsv::parse($request->file('file'));
+        } catch (InvalidArgumentException $exception) {
+            throw ValidationException::withMessages(['file' => $exception->getMessage()]);
+        }
+
+        return response()->json([
+            'rows' => $rows->map(fn (array $row) => Arr::except($row, '_line'))->values(),
+        ]);
+    }
+
+    public function exportCogsForm(Request $request): StreamedResponse
+    {
+        $this->authorize('create', Boq::class);
+
+        $validated = $request->validate([
+            'rows' => ['required', 'array', 'max:5000'],
+            'rows.*' => ['array'],
+            'rows.*.*' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $numericColumns = ['quantity', 'material_price', 'service_price'];
+        $rows = [BoqCogsCsv::HEADERS];
+
+        foreach ($validated['rows'] as $row) {
+            $rows[] = array_map(function (string $column) use ($row, $numericColumns): string|int|float {
+                $value = trim((string) ($row[$column] ?? ''));
+
+                if (in_array($column, $numericColumns, true) && is_numeric($value)) {
+                    return $value + 0;
+                }
+
+                return $value;
+            }, BoqCogsCsv::HEADERS);
+        }
+
+        return SpreadsheetFile::download($rows, 'boq-cogs-form.xlsx', 'COGS');
     }
 }

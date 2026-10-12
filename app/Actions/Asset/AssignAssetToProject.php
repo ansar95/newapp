@@ -19,13 +19,18 @@ class AssignAssetToProject
     ) {}
 
     /**
-     * @param  array{asset_id: int|string, notes?: string|null}  $data
+     * @param  array{asset_id: int|string, notes?: string|null, responsible_name?: string|null, responsible_position?: string|null}  $data
      */
     public function handle(User $actor, Project $project, array $data): ProjectAsset
     {
         $validated = Validator::make($data, [
             'asset_id' => ['required', 'integer', 'exists:assets,id'],
             'notes' => ['nullable', 'string'],
+            'responsible_name' => ['nullable', 'string', 'max:255'],
+            'responsible_position' => ['nullable', 'string', 'max:255'],
+        ], [
+            'responsible_name.max' => 'Nama penanggung jawab maksimal 255 karakter.',
+            'responsible_position.max' => 'Jabatan penanggung jawab maksimal 255 karakter.',
         ])->validate();
 
         return DB::transaction(function () use ($actor, $project, $validated) {
@@ -70,6 +75,8 @@ class AssignAssetToProject
                 'assigned_at' => now(),
                 'released_at' => null,
                 'notes' => $validated['notes'] ?? null,
+                'responsible_name' => $validated['responsible_name'] ?? null,
+                'responsible_position' => $validated['responsible_position'] ?? null,
                 'status' => ProjectAssetStatus::InUse,
                 'assigned_by' => $actor->id,
                 'released_by' => null,

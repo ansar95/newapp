@@ -6,7 +6,7 @@
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <x-stat-card label="Nilai BOQ" :value="rupiah($cost['summary']['boq_value'])" />
         <x-stat-card label="Total Actual Cost" :value="rupiah($cost['summary']['actual'])"
-                     :hint="'BMHP '.rupiah($cost['summary']['bmhp']).' · Sewa '.rupiah($cost['summary']['rental']).' · Payment '.rupiah($cost['summary']['payment'])" />
+                     :hint="'BMHP '.rupiah($cost['summary']['bmhp']).' · Sewa '.rupiah($cost['summary']['rental']).' · Payment '.rupiah($cost['summary']['payment']).' · Man Power '.rupiah($cost['summary']['man_power'])" />
         <x-stat-card label="Sisa Budget" :value="rupiah($cost['summary']['variance'])"
                      :hint="percent_format($cost['summary']['percentage'], 1).' terpakai'" />
         <x-stat-card label="Item Over Budget" :value="(string) $cost['summary']['over_budget']" />
@@ -53,6 +53,13 @@
                     @endforeach
                     </tbody>
                     <tfoot class="bg-maroon-50 font-semibold text-maroon-950">
+                    @if ($cost['summary']['man_power'] > 0)
+                        <tr class="font-normal">
+                            <td class="px-4 py-2" colspan="5">Man Power <span class="text-xs text-maroon-700">(kasbon + pelunasan, biaya level project)</span></td>
+                            <td class="px-4 py-2 text-right whitespace-nowrap"><x-money :amount="$cost['summary']['man_power']" /></td>
+                            <td class="px-4 py-2" colspan="4"></td>
+                        </tr>
+                    @endif
                     <tr>
                         <td class="px-4 py-2">Total</td>
                         <td class="px-4 py-2 text-right whitespace-nowrap"><x-money :amount="$cost['summary']['boq_value']" /></td>

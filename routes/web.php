@@ -7,6 +7,7 @@ use App\Http\Controllers\BoqRevisionController;
 use App\Http\Controllers\ClientBillingController;
 use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ManPowerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\ProcurementAllocationController;
@@ -20,9 +21,11 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectDocumentController;
 use App\Http\Controllers\ProjectDocumentVersionController;
 use App\Http\Controllers\ProjectDocumentWorkflowController;
+use App\Http\Controllers\ProjectManPowerController;
 use App\Http\Controllers\ProjectProcurementController;
 use App\Http\Controllers\ProjectReportController;
 use App\Http\Controllers\ProjectTermController;
+use App\Http\Controllers\ProjectTransferController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::post('/projects/import', [ProjectTransferController::class, 'import'])->name('projects.import');
+    Route::get('/projects/{project}/export', [ProjectTransferController::class, 'export'])->name('projects.export');
     Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
     Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
     Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
@@ -60,6 +65,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects/{project}/assets', [ProjectAssetController::class, 'index'])->name('projects.assets.index');
     Route::post('/projects/{project}/assets', [ProjectAssetController::class, 'store'])->name('projects.assets.store');
     Route::post('/projects/{project}/assets/{projectAsset}/release', [ProjectAssetController::class, 'release'])->name('projects.assets.release');
+    Route::patch('/projects/{project}/assets/{projectAsset}/responsible', [ProjectAssetController::class, 'updateResponsible'])->name('projects.assets.responsible');
+
+    Route::get('/projects/{project}/man-power', [ProjectManPowerController::class, 'index'])->name('projects.man-power.index');
+    Route::post('/projects/{project}/man-power', [ProjectManPowerController::class, 'store'])->name('projects.man-power.store');
+    Route::put('/project-man-powers/{projectManPower}', [ProjectManPowerController::class, 'update'])->name('project-man-powers.update');
+    Route::post('/project-man-powers/{projectManPower}/transactions', [ProjectManPowerController::class, 'storeTransaction'])->name('man-power-transactions.store');
+    Route::post('/man-power-transactions/{manPowerTransaction}/cancel', [ProjectManPowerController::class, 'cancelTransaction'])->name('man-power-transactions.cancel');
 
     Route::get('/projects/{project}/procurement', [ProjectProcurementController::class, 'index'])->name('projects.procurement.index');
     Route::get('/projects/{project}/procurement/create', [ProjectProcurementController::class, 'create'])->name('projects.procurement.create');
@@ -92,12 +104,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/assets/{asset}/available', [AssetController::class, 'markAvailable'])->name('assets.available');
     Route::get('/assets/{asset}/request-letter', [AssetController::class, 'downloadRequestLetter'])->name('assets.request-letter');
 
+    Route::get('/man-powers', [ManPowerController::class, 'index'])->name('man-powers.index');
+    Route::post('/man-powers', [ManPowerController::class, 'store'])->name('man-powers.store');
+    Route::get('/man-powers/export', [ManPowerController::class, 'export'])->name('man-powers.export');
+    Route::get('/man-powers/import/template', [ManPowerController::class, 'importTemplate'])->name('man-powers.import.template');
+    Route::post('/man-powers/import', [ManPowerController::class, 'import'])->name('man-powers.import');
+    Route::get('/man-powers/{manPower}/edit', [ManPowerController::class, 'edit'])->name('man-powers.edit');
+    Route::put('/man-powers/{manPower}', [ManPowerController::class, 'update'])->name('man-powers.update');
+
     Route::get('/boqs/{boq}', [BoqController::class, 'show'])->name('boqs.show');
     Route::post('/boqs/{boq}/submit', [BoqController::class, 'submit'])->name('boqs.submit');
     Route::post('/boqs/{boq}/cogs', [BoqController::class, 'storeCogs'])->name('boqs.cogs.store');
     Route::get('/boqs/{boq}/cogs/export', [BoqController::class, 'exportCogs'])->name('boqs.cogs.export');
     Route::post('/boqs/{boq}/cogs/import', [BoqController::class, 'importCogs'])->name('boqs.cogs.import');
     Route::get('/boq-cogs/template', [BoqController::class, 'cogsTemplate'])->name('boqs.cogs.template');
+    Route::post('/boq-cogs/parse', [BoqController::class, 'parseCogsFile'])->name('boqs.cogs.parse');
+    Route::post('/boq-cogs/form-export', [BoqController::class, 'exportCogsForm'])->name('boqs.cogs.form-export');
     Route::post('/boq-cogs/{boqCogs}/items', [BoqController::class, 'storeItem'])->name('boqs.items.store');
     Route::patch('/boq-items/{item}', [BoqController::class, 'updateItem'])->name('boqs.items.update');
 

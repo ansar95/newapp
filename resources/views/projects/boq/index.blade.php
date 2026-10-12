@@ -75,7 +75,7 @@
                     @endcan
                 @endif
                 @can('view', $boq)
-                    <a href="{{ route('boqs.cogs.export', $boq) }}" class="rounded-md border border-maroon-300 px-3 py-1.5 text-sm">Export CSV</a>
+                    <a href="{{ route('boqs.cogs.export', $boq) }}" class="rounded-md border border-maroon-300 px-3 py-1.5 text-sm">Export Excel</a>
                 @endcan
                 @can('create', \App\Models\Boq::class)
                     @if ($boqs->count() < 2)

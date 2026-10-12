@@ -48,4 +48,14 @@ class ProjectPolicy
     {
         return $user->isSuperadmin();
     }
+
+    public function export(User $user, Project $project): bool
+    {
+        return $user->isSuperadmin();
+    }
+
+    public function import(User $user): bool
+    {
+        return $user->isSuperadmin();
+    }
 }

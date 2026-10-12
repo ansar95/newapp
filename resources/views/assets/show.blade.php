@@ -123,7 +123,7 @@
         <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-maroon-700">Current Assignment</h3>
         <div class="rounded-xl border border-maroon-200 bg-white p-5 shadow-sm">
             @if ($currentAssignment)
-                <div class="grid gap-3 sm:grid-cols-3">
+                <div class="grid gap-3 sm:grid-cols-4">
                     <div>
                         <p class="text-xs uppercase tracking-wide text-maroon-700">Project</p>
                         <a href="{{ route('projects.assets.index', $currentAssignment->project) }}" class="mt-1 font-semibold text-maroon-950 hover:underline">
@@ -137,6 +137,13 @@
                     <div>
                         <p class="text-xs uppercase tracking-wide text-maroon-700">Assigned By</p>
                         <p class="mt-1 font-semibold text-maroon-950">{{ $currentAssignment->assignedBy?->name ?: '—' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-maroon-700">Penanggung Jawab</p>
+                        <p class="mt-1 font-semibold text-maroon-950">{{ $currentAssignment->responsible_name ?: '—' }}</p>
+                        @if ($currentAssignment->responsible_position)
+                            <p class="text-xs text-maroon-700">{{ $currentAssignment->responsible_position }}</p>
+                        @endif
                     </div>
                 </div>
             @else
@@ -158,6 +165,7 @@
                     <thead class="bg-maroon-50 text-left text-xs font-semibold uppercase tracking-wide text-maroon-700">
                     <tr>
                         <th class="px-4 py-3">Project</th>
+                        <th class="px-4 py-3">Penanggung Jawab</th>
                         <th class="px-4 py-3">Assigned</th>
                         <th class="px-4 py-3">Released</th>
                         <th class="px-4 py-3">Status</th>
@@ -174,6 +182,12 @@
                                     <a href="{{ route('projects.assets.index', $usage->project) }}" class="font-medium text-maroon-900 hover:underline">
                                         {{ $usage->project->code }} — {{ $usage->project->name }}
                                     </a>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ $usage->responsible_name ?? '-' }}
+                                @if ($usage->responsible_position)
+                                    <div class="text-xs text-maroon-700">{{ $usage->responsible_position }}</div>
                                 @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap"><x-date-display :value="$usage->assigned_at" /></td>

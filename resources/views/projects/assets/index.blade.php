@@ -77,6 +77,16 @@
                             <input type="text" name="notes" value="{{ old('notes') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" placeholder="Catatan penempatan">
                             <x-input-error :messages="$errors->get('notes')" class="mt-1" />
                         </div>
+                        <div>
+                            <x-input-label value="Penanggung Jawab" />
+                            <input type="text" name="responsible_name" value="{{ old('responsible_name') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" placeholder="Nama penanggung jawab">
+                            <x-input-error :messages="$errors->get('responsible_name')" class="mt-1" />
+                        </div>
+                        <div>
+                            <x-input-label value="Jabatan" />
+                            <input type="text" name="responsible_position" value="{{ old('responsible_position') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" placeholder="Jabatan penanggung jawab">
+                            <x-input-error :messages="$errors->get('responsible_position')" class="mt-1" />
+                        </div>
                     </div>
                     <div class="flex justify-end">
                         <button type="submit"
@@ -114,6 +124,7 @@
                             <th class="px-4 py-3">Category</th>
                             <th class="px-4 py-3">Source</th>
                             <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3">Penanggung Jawab</th>
                             <th class="px-4 py-3">Assigned Date</th>
                             <th class="px-4 py-3">Action</th>
                         </tr>
@@ -126,6 +137,29 @@
                                 <td class="px-4 py-3">{{ $assignment->asset->category }}</td>
                                 <td class="px-4 py-3"><x-status-badge :status="$assignment->asset->source_type" /></td>
                                 <td class="px-4 py-3"><x-status-badge :status="$assignment->status" /></td>
+                                <td class="min-w-[12rem] px-4 py-3" x-data="{ editing: false }">
+                                    <div x-show="!editing">
+                                        <div class="font-medium text-maroon-950">{{ $assignment->responsible_name ?? '-' }}</div>
+                                        @if ($assignment->responsible_position)
+                                            <div class="text-xs text-maroon-700">{{ $assignment->responsible_position }}</div>
+                                        @endif
+                                        @can('updateResponsible', $assignment)
+                                            <button type="button" class="mt-1 text-xs font-medium text-maroon-800 hover:underline" @click="editing = true">Ubah</button>
+                                        @endcan
+                                    </div>
+                                    @can('updateResponsible', $assignment)
+                                        <form method="POST" action="{{ route('projects.assets.responsible', [$project, $assignment]) }}" class="space-y-2" x-show="editing" x-cloak>
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="text" name="responsible_name" value="{{ $assignment->responsible_name }}" class="w-full rounded-md border-maroon-300 text-sm" placeholder="Nama">
+                                            <input type="text" name="responsible_position" value="{{ $assignment->responsible_position }}" class="w-full rounded-md border-maroon-300 text-sm" placeholder="Jabatan">
+                                            <div class="flex gap-2">
+                                                <button type="submit" class="rounded-md bg-maroon-800 px-3 py-1 text-xs font-medium text-white">Simpan</button>
+                                                <button type="button" class="text-xs font-medium text-maroon-800 hover:underline" @click="editing = false">Batal</button>
+                                            </div>
+                                        </form>
+                                    @endcan
+                                </td>
                                 <td class="px-4 py-3 whitespace-nowrap"><x-date-display :value="$assignment->assigned_at" /></td>
                                 <td class="px-4 py-3">
                                     <div class="flex flex-wrap gap-2">

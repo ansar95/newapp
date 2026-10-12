@@ -3,35 +3,22 @@
 namespace App\Actions\Asset;
 
 use App\Support\AssetCsv;
+use App\Support\SpreadsheetFile;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportAssets
 {
     public function handle(): StreamedResponse
     {
-        $csv = AssetCsv::fromAssets();
-
-        return response()->streamDownload(
-            function () use ($csv): void {
-                echo $csv;
-            },
-            'assets-export-'.now()->format('Ymd-His').'.csv',
-            [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-            ]
+        return SpreadsheetFile::download(
+            AssetCsv::rowsFromAssets(),
+            'assets-export-'.now()->format('Ymd-His').'.xlsx',
+            'Assets'
         );
     }
 
     public function template(): StreamedResponse
     {
-        return response()->streamDownload(
-            function (): void {
-                echo AssetCsv::templateCsv();
-            },
-            'assets-import-template.csv',
-            [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-            ]
-        );
+        return SpreadsheetFile::download(AssetCsv::templateRows(), 'assets-import-template.xlsx', 'Assets');
     }
 }

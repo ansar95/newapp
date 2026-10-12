@@ -134,6 +134,27 @@ class Project extends Model
         return $this->hasMany(ProjectDocument::class);
     }
 
+    public function manPowers(): HasMany
+    {
+        return $this->hasMany(ProjectManPower::class);
+    }
+
+    /**
+     * Man power can only be assigned or re-scheduled while the project is running.
+     */
+    public function acceptsManPowerAssignment(): bool
+    {
+        return $this->status === ProjectStatus::Active;
+    }
+
+    /**
+     * Kasbon and payouts may still be settled after the project is completed.
+     */
+    public function acceptsManPowerPayment(): bool
+    {
+        return in_array($this->status, [ProjectStatus::Active, ProjectStatus::Completed], true);
+    }
+
     public function totalCost(): float
     {
         $total = 0.0;

@@ -8,6 +8,7 @@ use App\Enums\AssetStatus;
 use App\Models\Asset;
 use App\Models\User;
 use App\Support\AssetCsv;
+use App\Support\SpreadsheetFile;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -23,13 +24,8 @@ class ImportAssets
     {
         Validator::make(
             ['file' => $file],
-            [
-                'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
-            ],
-            [
-                'file.mimes' => 'File harus berformat CSV.',
-                'file.max' => 'Ukuran file maksimal 2MB.',
-            ]
+            ['file' => SpreadsheetFile::UPLOAD_RULES],
+            SpreadsheetFile::uploadMessages()
         )->validate();
 
         try {

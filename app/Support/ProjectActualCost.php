@@ -2,17 +2,20 @@
 
 namespace App\Support;
 
+use App\Enums\ManPowerTransactionStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ProcurementType;
 use App\Models\Boq;
 use App\Models\BoqCogs;
 use App\Models\BoqItem;
+use App\Models\ManPowerTransaction;
 use App\Models\Payment;
 use App\Models\PaymentAllocation;
 use App\Models\Project;
 
 /**
- * Read-only actual cost of a project: paid BMHP allocations + paid rental allocations + PAID payment allocations.
+ * Read-only actual cost of a project: paid BMHP allocations + paid rental allocations + PAID payment allocations
+ * + paid man power kasbon / payouts. Man power is a project-level cost and is never attributed to BOQ items.
  */
 class ProjectActualCost
 {
@@ -25,6 +28,7 @@ class ProjectActualCost
         public readonly ProcurementActualCost $rental,
         private readonly array $paymentItemActuals,
         public readonly float $paidPaymentTotal,
+        private readonly float $manPowerTotal,
     ) {}
 
     public static function forProject(Project $project): self
@@ -46,12 +50,18 @@ class ProjectActualCost
             ->whereHas('paymentPlan.boq', fn ($query) => $query->where('project_id', $project->id))
             ->sum('amount');
 
+        $manPowerTotal = (float) ManPowerTransaction::query()
+            ->where('status', ManPowerTransactionStatus::Paid)
+            ->whereHas('projectManPower', fn ($query) => $query->where('project_id', $project->id))
+            ->sum('amount');
+
         return new self(
             $project,
             ProcurementActualCost::forProject($project, ProcurementType::Bmhp),
             ProcurementActualCost::forProject($project, ProcurementType::Rental),
             $paymentItemActuals,
             round($paidPaymentTotal, 2),
+            round($manPowerTotal, 2),
         );
     }
 
@@ -121,9 +131,14 @@ class ProjectActualCost
         return round(array_sum($this->paymentItemActuals), 2);
     }
 
+    public function manPowerActual(): float
+    {
+        return $this->manPowerTotal;
+    }
+
     public function projectActual(): float
     {
-        return round($this->bmhpActual() + $this->rentalActual() + $this->paymentActual(), 2);
+        return round($this->bmhpActual() + $this->rentalActual() + $this->paymentActual() + $this->manPowerActual(), 2);
     }
 
     public static function variance(float $baseline, float $actual): float

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Asset\AssignAssetToProject;
 use App\Actions\Asset\ReleaseAssetFromProject;
+use App\Actions\Asset\UpdateAssetResponsible;
 use App\Enums\AssetStatus;
 use App\Enums\ProjectAssetStatus;
 use App\Models\Asset;
@@ -54,6 +55,21 @@ class ProjectAssetController extends Controller
         $assignAssetToProject->handle($request->user(), $project, $request->all());
 
         return back()->with('success', 'Asset berhasil digunakan pada project.');
+    }
+
+    public function updateResponsible(
+        Request $request,
+        Project $project,
+        ProjectAsset $projectAsset,
+        UpdateAssetResponsible $updateAssetResponsible
+    ): RedirectResponse {
+        $this->authorize('updateResponsible', $projectAsset);
+
+        abort_unless((int) $projectAsset->project_id === (int) $project->id, 404);
+
+        $updateAssetResponsible->handle($project, $projectAsset, $request->only(['responsible_name', 'responsible_position']));
+
+        return back()->with('success', 'Penanggung jawab asset berhasil diperbarui.');
     }
 
     public function release(

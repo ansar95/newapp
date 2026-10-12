@@ -60,6 +60,9 @@
                         <x-status-badge status="REVISION_REQUIRED" />
                     </div>
                     <p class="text-sm text-maroon-700">COGS: {{ $item?->cogs?->name }} · {{ $item?->code }}</p>
+                    @if ($item?->notes)
+                        <p class="text-sm text-maroon-700">Keterangan: {{ $item->notes }}</p>
+                    @endif
                     <p class="mt-2 text-sm"><span class="font-medium">Reason:</span> {{ $revisionItem->reason }}</p>
 
                     @if ($boq->status === \App\Enums\BoqStatus::Draft && $item)
@@ -82,6 +85,10 @@
                                 <div>
                                     <x-input-label value="Harga Jasa *" />
                                     <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', $item->service_unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                </div>
+                                <div class="sm:col-span-4">
+                                    <x-input-label value="Keterangan" />
+                                    <input type="text" name="notes" maxlength="255" value="{{ $item->notes }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
                                 </div>
                                 <div class="flex items-end">
                                     <button class="w-full rounded-md bg-maroon-800 px-3 py-2 text-sm text-white disabled:opacity-60" :disabled="submitting"

@@ -10,6 +10,34 @@
         @endcan
     </x-page-header>
 
+    @can('import', \App\Models\Project::class)
+        <div class="mb-4 rounded-xl border border-maroon-200 bg-white p-4 shadow-sm" x-data="{ submitting: false }">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-maroon-950">Import Project</h3>
+                    <p class="mt-1 text-xs text-maroon-700">
+                        Upload file ZIP hasil Export Project. Semua data (BOQ, payment, pengadaan, penagihan, dokumen, man power, asset) dan lampirannya dipulihkan dengan status aslinya.
+                        Import ditolak jika kode project atau nomor transaksi sudah ada.
+                    </p>
+                </div>
+                <form method="POST" action="{{ route('projects.import') }}" enctype="multipart/form-data"
+                      class="flex flex-col gap-2 sm:flex-row sm:items-center"
+                      @submit="if (!confirm('Import project dari file ini?')) { $event.preventDefault(); return; } submitting = true">
+                    @csrf
+                    <input type="file" name="file" accept=".zip,application/zip" required
+                           class="block w-full text-sm text-maroon-800 file:mr-3 file:rounded-md file:border-0 file:bg-maroon-800 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white sm:w-auto">
+                    <button type="submit"
+                            class="rounded-md bg-maroon-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+                            :disabled="submitting"
+                            x-text="submitting ? 'Importing...' : 'Import Project'">
+                        Import Project
+                    </button>
+                </form>
+            </div>
+            <x-input-error :messages="$errors->get('file')" class="mt-2" />
+        </div>
+    @endcan
+
     <form method="GET" action="{{ route('projects.index') }}" class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
         <div class="w-full max-w-xl">
             <x-input-label for="search" value="Search" />

@@ -236,6 +236,7 @@ class ReportData
                     'bmhp_actual' => $actualCost->bmhpActual(),
                     'rental_actual' => $actualCost->rentalActual(),
                     'payment_actual' => $actualCost->paymentActual(),
+                    'man_power_actual' => $actualCost->manPowerActual(),
                     'actual_cost' => $actual,
                     'variance' => ProjectActualCost::variance($boqValue, $actual),
                     'actual_percentage' => ProjectActualCost::percentage($boqValue, $actual),

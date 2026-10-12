@@ -9,6 +9,7 @@ use App\Enums\AssetSourceType;
 use App\Enums\AssetStatus;
 use App\Models\Asset;
 use App\Support\AssetCsv;
+use App\Support\SimpleXlsx;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\Support\BuildsWorkflowFixtures;
@@ -26,10 +27,37 @@ class AssetImportTest extends TestCase
         $response = $this->actingAs($actor)->get(route('assets.import.template'));
 
         $response->assertOk();
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('code,name,category', $content);
-        $this->assertStringContainsString('condition', $content);
-        $this->assertStringContainsString('purchase_year', $content);
+        $response->assertHeader('content-type', SimpleXlsx::MIME);
+        $rows = SimpleXlsx::readString($response->streamedContent());
+        $this->assertSame(AssetCsv::HEADERS, $rows[0]);
+        $this->assertSame('2024', $rows[1][8]);
+    }
+
+    public function test_can_import_assets_from_excel_file(): void
+    {
+        $actor = $this->makeSuperadmin();
+
+        $xlsx = SimpleXlsx::write([
+            AssetCsv::HEADERS,
+            ['AST-XLS-01', 'Bor Listrik, 13mm', 'Tools', 'Makita', 'HP1630', 'Unit', 'EXISTING', 'BAIK', 2022, 'Ada koma, aman', '', '', ''],
+        ]);
+
+        $this->actingAs($actor)
+            ->post(route('assets.import'), ['file' => UploadedFile::fake()->createWithContent('assets.xlsx', $xlsx)])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $asset = Asset::query()->where('code', 'AST-XLS-01')->sole();
+        $this->assertSame('Bor Listrik, 13mm', $asset->name);
+        $this->assertSame(2022, $asset->purchase_year);
+        $this->assertSame(AssetCondition::Good, $asset->condition);
+    }
+
+    public function test_import_rejects_unsupported_file_type(): void
+    {
+        $this->actingAs($this->makeSuperadmin())
+            ->post(route('assets.import'), ['file' => UploadedFile::fake()->createWithContent('assets.xls', 'binary')])
+            ->assertSessionHasErrors(['file' => 'File harus berformat Excel (.xlsx) atau CSV. File .xls lama perlu disimpan ulang sebagai .xlsx.']);
     }
 
     public function test_can_import_existing_and_purchase_assets_from_csv(): void
@@ -225,8 +253,9 @@ class AssetImportTest extends TestCase
         $response = $this->actingAs($actor)->get(route('assets.export'));
 
         $response->assertOk();
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('AST-EXP-01', $content);
-        $this->assertStringContainsString('purchase_year', $content);
+        $rows = SimpleXlsx::readString($response->streamedContent());
+        $this->assertSame(AssetCsv::HEADERS, $rows[0]);
+        $this->assertSame(['AST-EXP-01', 'Export Sample', 'Other'], array_slice($rows[1], 0, 3));
+        $this->assertSame('2022', $rows[1][8]);
     }
 }

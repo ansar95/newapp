@@ -26,17 +26,18 @@
             <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-maroon-100 pt-4">
                 <a href="{{ route('boqs.cogs.template') }}"
                    class="rounded-md border border-maroon-300 px-3 py-1.5 text-sm font-medium text-maroon-900 hover:bg-maroon-50">
-                    Download Template CSV
+                    Download Template Excel
                 </a>
                 <label class="inline-flex cursor-pointer items-center rounded-md border border-maroon-300 px-3 py-1.5 text-sm font-medium text-maroon-900 hover:bg-maroon-50">
-                    Import CSV
-                    <input type="file" accept=".csv,text/csv" class="hidden" @change="importCsv($event)">
+                    Import Excel/CSV
+                    <input type="file" accept=".xlsx,.csv" class="hidden" @change="importFile($event)">
                 </label>
                 <button type="button"
                         class="rounded-md border border-maroon-300 px-3 py-1.5 text-sm font-medium text-maroon-900 hover:bg-maroon-50"
-                        @click="exportCsv()">
-                    Export Form CSV
+                        @click="exportFile()">
+                    Export Form Excel
                 </button>
+                <p class="w-full text-xs text-maroon-700">Isi template di Excel lalu import file .xlsx-nya. File CSV (pemisah koma atau titik koma) juga diterima. Kode item dibuat otomatis per COGS.</p>
                 <p class="w-full text-xs text-maroon-700" x-text="importMessage" x-show="importMessage"></p>
             </div>
         </div>
@@ -58,7 +59,7 @@
                         <input type="text" :name="`cogs[${ci}][description]`" x-model="cogs.description" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
                     </div>
                 </div>
-                <p class="mb-3 text-xs text-maroon-700">Kode COGS diisi otomatis saat disimpan (COGS-001, COGS-002, …).</p>
+                <p class="mb-3 text-xs text-maroon-700">Kode COGS diisi otomatis saat disimpan (COGS-001, COGS-002, …). Kode item boleh dikosongkan, akan diisi otomatis per COGS (ITEM-001, ITEM-002, …).</p>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -70,6 +71,7 @@
                             <th class="px-2 py-2">Unit</th>
                             <th class="px-2 py-2">Harga Material</th>
                             <th class="px-2 py-2">Harga Jasa</th>
+                            <th class="px-2 py-2">Keterangan</th>
                             <th class="px-2 py-2">Total</th>
                             <th class="px-2 py-2"></th>
                         </tr>
@@ -77,15 +79,13 @@
                         <tbody>
                         <template x-for="(item, ii) in cogs.items" :key="ii">
                             <tr class="border-t border-maroon-100">
-                                <td class="px-2 py-2">
-                                    <input type="text" :name="`cogs[${ci}][items][${ii}][code]`" x-model="item.code" class="w-24 rounded-md border-maroon-300 text-sm" required>
-                                    <input type="hidden" :name="`cogs[${ci}][items][${ii}][notes]`" :value="item.notes || ''">
-                                </td>
+                                <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][code]`" x-model="item.code" placeholder="Otomatis" class="w-24 rounded-md border-maroon-300 text-sm"></td>
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][name]`" x-model="item.name" class="w-full rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][quantity]`" x-model.number="item.quantity" class="w-24 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="text" :name="`cogs[${ci}][items][${ii}][unit]`" x-model="item.unit" class="w-20 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][material_unit_price]`" x-model.number="item.material_unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][service_unit_price]`" x-model.number="item.service_unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
+                                <td class="px-2 py-2"><input type="text" maxlength="255" :name="`cogs[${ci}][items][${ii}][notes]`" x-model="item.notes" placeholder="Opsional" class="w-48 rounded-md border-maroon-300 text-sm"></td>
                                 <td class="px-2 py-2 whitespace-nowrap font-medium" x-text="formatMoney(itemTotal(item))"></td>
                                 <td class="px-2 py-2">
                                     <button type="button" class="text-maroon-900 hover:underline" @click="removeItem(ci, ii)" x-show="cogs.items.length > 1">Hapus</button>
@@ -140,19 +140,19 @@
                 cogsList: [{
                     name: 'Engineering',
                     description: '',
-                    items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0 }]
+                    items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '' }]
                 }],
                 addCogs() {
                     this.cogsList.push({
                         name: '',
                         description: '',
-                        items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0 }]
+                        items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '' }]
                     });
                 },
                 removeCogs(ci) { this.cogsList.splice(ci, 1); },
                 addItem(ci) {
                     const n = String(this.cogsList[ci].items.length + 1).padStart(3, '0');
-                    this.cogsList[ci].items.push({ code: 'ITEM-' + n, name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0 });
+                    this.cogsList[ci].items.push({ code: 'ITEM-' + n, name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '' });
                 },
                 removeItem(ci, ii) { this.cogsList[ci].items.splice(ii, 1); },
                 itemMaterial(item) { return (Number(item.quantity) || 0) * (Number(item.material_unit_price) || 0); },
@@ -166,141 +166,104 @@
                 boqTotal() { return this.cogsList.reduce((s, c) => s + this.cogsTotal(c), 0); },
                 itemCount() { return this.cogsList.reduce((s, c) => s + c.items.length, 0); },
                 formatMoney(v) { return 'Rp' + new Intl.NumberFormat('id-ID').format(Math.round(v || 0)); },
-                parseCsvLine(line) {
-                    const result = [];
-                    let current = '';
-                    let inQuotes = false;
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
-                        if (char === '"') {
-                            if (inQuotes && line[i + 1] === '"') {
-                                current += '"';
-                                i++;
-                            } else {
-                                inQuotes = !inQuotes;
-                            }
-                        } else if (char === ',' && !inQuotes) {
-                            result.push(current);
-                            current = '';
-                        } else {
-                            current += char;
-                        }
-                    }
-                    result.push(current);
-                    return result.map((value) => value.trim());
+                csrfToken() {
+                    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                 },
-                importCsv(event) {
+                async importFile(event) {
                     const file = event.target.files?.[0];
                     if (!file) {
                         return;
                     }
 
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        try {
-                            const text = String(reader.result || '').replace(/^\uFEFF/, '');
-                            const lines = text.split(/\r?\n/).filter((line) => line.trim() !== '');
-                            if (lines.length < 2) {
-                                throw new Error('File CSV kosong atau tidak berisi data.');
-                            }
+                    this.importMessage = 'Membaca file...';
+                    const body = new FormData();
+                    body.append('file', file);
 
-                            const headers = this.parseCsvLine(lines[0]).map((h) => h.toLowerCase());
-                            const required = ['cogs_name', 'item_code', 'item_name', 'quantity', 'unit'];
-                            for (const column of required) {
-                                if (!headers.includes(column)) {
-                                    throw new Error('Kolom wajib hilang: ' + column);
-                                }
-                            }
+                    try {
+                        const response = await fetch(@js(route('boqs.cogs.parse')), {
+                            method: 'POST',
+                            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': this.csrfToken() },
+                            body
+                        });
+                        const payload = await response.json().catch(() => ({}));
 
-                            const index = Object.fromEntries(headers.map((header, i) => [header, i]));
-                            const materialColumn = 'material_price' in index ? 'material_price' : 'unit_price';
-                            if (!(materialColumn in index)) {
-                                throw new Error('Kolom wajib hilang: material_price');
-                            }
-                            const grouped = {};
-
-                            for (let i = 1; i < lines.length; i++) {
-                                const cols = this.parseCsvLine(lines[i]);
-                                if (cols.every((value) => value === '')) {
-                                    continue;
-                                }
-
-                                const cogsName = cols[index.cogs_name] || '';
-                                if (!cogsName) {
-                                    throw new Error('Baris ' + (i + 1) + ': cogs_name wajib diisi.');
-                                }
-
-                                const nameKey = cogsName.toLowerCase();
-
-                                if (!grouped[nameKey]) {
-                                    grouped[nameKey] = {
-                                        name: cogsName,
-                                        description: cols[index.cogs_description] || '',
-                                        items: []
-                                    };
-                                }
-
-                                grouped[nameKey].items.push({
-                                    code: cols[index.item_code] || '',
-                                    name: cols[index.item_name] || '',
-                                    quantity: Number(cols[index.quantity] || 0),
-                                    unit: cols[index.unit] || 'ls',
-                                    material_unit_price: Number(cols[index[materialColumn]] || 0),
-                                    service_unit_price: 'service_price' in index ? Number(cols[index.service_price] || 0) : 0,
-                                    notes: 'item_notes' in index ? (cols[index.item_notes] || '') : ''
-                                });
-                            }
-
-                            const imported = Object.values(grouped).filter((cogs) => cogs.items.length > 0);
-                            if (imported.length === 0) {
-                                throw new Error('Tidak ada baris COGS/item yang valid.');
-                            }
-
-                            this.cogsList = imported;
-                            this.importMessage = 'Import berhasil: ' + imported.length + ' COGS, ' + this.itemCount() + ' item.';
-                        } catch (error) {
-                            this.importMessage = error.message || 'Gagal membaca CSV.';
-                        } finally {
-                            event.target.value = '';
+                        if (!response.ok) {
+                            throw new Error(payload.errors?.file?.[0] || payload.message || 'Gagal membaca file.');
                         }
-                    };
-                    reader.readAsText(file);
+
+                        const grouped = {};
+
+                        (payload.rows || []).forEach((row) => {
+                            const nameKey = (row.cogs_name || '').toLowerCase();
+
+                            if (!grouped[nameKey]) {
+                                grouped[nameKey] = { name: row.cogs_name || '', description: row.cogs_description || '', items: [] };
+                            }
+
+                            grouped[nameKey].items.push({
+                                code: row.item_code || '',
+                                name: row.item_name || '',
+                                quantity: Number(row.quantity || 0),
+                                unit: row.unit || 'ls',
+                                material_unit_price: Number(row.material_price || 0),
+                                service_unit_price: Number(row.service_price || 0),
+                                notes: row.item_notes || ''
+                            });
+                        });
+
+                        const imported = Object.values(grouped).filter((cogs) => cogs.items.length > 0);
+                        if (imported.length === 0) {
+                            throw new Error('Tidak ada baris COGS/item yang valid.');
+                        }
+
+                        this.cogsList = imported;
+                        this.importMessage = 'Import berhasil: ' + imported.length + ' COGS, ' + this.itemCount() + ' item.';
+                    } catch (error) {
+                        this.importMessage = error.message || 'Gagal membaca file.';
+                    } finally {
+                        event.target.value = '';
+                    }
                 },
-                exportCsv() {
-                    const headers = ['cogs_name', 'cogs_description', 'item_code', 'item_name', 'item_description', 'quantity', 'unit', 'material_price', 'service_price', 'item_notes'];
-                    const rows = [headers.join(',')];
+                async exportFile() {
+                    const rows = [];
 
                     this.cogsList.forEach((cogs) => {
                         cogs.items.forEach((item) => {
-                            rows.push([
-                                this.csvEscape(cogs.name),
-                                this.csvEscape(cogs.description || ''),
-                                this.csvEscape(item.code),
-                                this.csvEscape(item.name),
-                                '',
-                                item.quantity,
-                                this.csvEscape(item.unit),
-                                item.material_unit_price,
-                                item.service_unit_price,
-                                this.csvEscape(item.notes || '')
-                            ].join(','));
+                            rows.push({
+                                cogs_name: String(cogs.name ?? ''),
+                                cogs_description: String(cogs.description ?? ''),
+                                item_code: String(item.code ?? ''),
+                                item_name: String(item.name ?? ''),
+                                item_description: '',
+                                quantity: String(item.quantity ?? ''),
+                                unit: String(item.unit ?? ''),
+                                material_price: String(item.material_unit_price ?? ''),
+                                service_price: String(item.service_unit_price ?? ''),
+                                item_notes: String(item.notes ?? '')
+                            });
                         });
                     });
 
-                    const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'boq-cogs-form.csv';
-                    link.click();
-                    URL.revokeObjectURL(url);
-                },
-                csvEscape(value) {
-                    const text = String(value ?? '');
-                    if (/[",\n]/.test(text)) {
-                        return '"' + text.replace(/"/g, '""') + '"';
+                    try {
+                        const response = await fetch(@js(route('boqs.cogs.form-export')), {
+                            method: 'POST',
+                            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': this.csrfToken() },
+                            body: JSON.stringify({ rows })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Gagal membuat file Excel.');
+                        }
+
+                        const url = URL.createObjectURL(await response.blob());
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = 'boq-cogs-form.xlsx';
+                        link.click();
+                        URL.revokeObjectURL(url);
+                    } catch (error) {
+                        this.importMessage = error.message || 'Gagal membuat file Excel.';
                     }
-                    return text;
                 }
             }
         }

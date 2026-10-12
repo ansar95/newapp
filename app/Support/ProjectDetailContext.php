@@ -57,6 +57,8 @@ class ProjectDetailContext
 
     public float $paymentActual = 0.0;
 
+    public float $manPowerActual = 0.0;
+
     public float $totalActual = 0.0;
 
     public float $actualPercentage = 0.0;
@@ -134,6 +136,7 @@ class ProjectDetailContext
         $this->bmhpActual = $this->actualCost->bmhpActual();
         $this->rentalActual = $this->actualCost->rentalActual();
         $this->paymentActual = $this->actualCost->paymentActual();
+        $this->manPowerActual = $this->actualCost->manPowerActual();
         $this->totalActual = $this->actualCost->projectActual();
         $this->actualPercentage = ProjectActualCost::percentage($this->totalBoqValue, $this->totalActual);
         $this->actualVariance = ProjectActualCost::variance($this->totalBoqValue, $this->totalActual);

@@ -199,7 +199,7 @@ class ProjectReport
     /**
      * @return array{
      *     rows: Collection<int, array<string, mixed>>,
-     *     summary: array{boq_value: float, bmhp: float, rental: float, payment: float, actual: float, variance: float, percentage: float, over_budget: int}
+     *     summary: array{boq_value: float, bmhp: float, rental: float, payment: float, man_power: float, actual: float, variance: float, percentage: float, over_budget: int}
      * }
      */
     public function cost(): array
@@ -227,7 +227,8 @@ class ProjectReport
         });
 
         $boqValue = round((float) $rows->sum('boq_value'), 2);
-        $actual = round((float) $rows->sum('actual'), 2);
+        $manPower = $actualCost->manPowerActual();
+        $actual = round((float) $rows->sum('actual') + $manPower, 2);
 
         return [
             'rows' => $rows,
@@ -236,6 +237,7 @@ class ProjectReport
                 'bmhp' => round((float) $rows->sum('bmhp'), 2),
                 'rental' => round((float) $rows->sum('rental'), 2),
                 'payment' => round((float) $rows->sum('payment'), 2),
+                'man_power' => $manPower,
                 'actual' => $actual,
                 'variance' => ProjectActualCost::variance($boqValue, $actual),
                 'percentage' => ProjectActualCost::percentage($boqValue, $actual),
@@ -405,6 +407,7 @@ class ProjectReport
             $rows[] = ['Actual BMHP', $summary['cost']['bmhp']];
             $rows[] = ['Actual Sewa Alat', $summary['cost']['rental']];
             $rows[] = ['Actual Payment', $summary['cost']['payment']];
+            $rows[] = ['Actual Man Power', $summary['cost']['man_power']];
             $rows[] = ['Total Actual Cost', $summary['cost']['actual']];
             $rows[] = ['Actual vs BOQ (%)', $summary['cost']['percentage']];
             $rows[] = ['Sisa Budget (BOQ - Actual)', $summary['cost']['variance']];
@@ -510,9 +513,14 @@ class ProjectReport
      */
     private function costCsv(): array
     {
+        $cost = $this->cost();
+        $manPowerRows = $cost['summary']['man_power'] > 0
+            ? [[null, null, null, 'Man Power (biaya level project)', null, null, null, null, $cost['summary']['man_power'], null, null, null, null]]
+            : [];
+
         return [
             'headers' => ['boq', 'cogs_code', 'item_code', 'item_name', 'boq_value', 'bmhp_actual', 'rental_actual', 'payment_actual', 'actual_cost', 'remaining_budget', 'actual_percent', 'variance_status', 'progress_percent'],
-            'rows' => $this->cost()['rows']->map(fn (array $row) => [
+            'rows' => [...$cost['rows']->map(fn (array $row) => [
                 $row['boq_code'],
                 $row['cogs']?->code,
                 $row['item']->code,
@@ -526,7 +534,7 @@ class ProjectReport
                 $row['percentage'],
                 $row['status']->label(),
                 $row['progress'],
-            ])->all(),
+            ])->all(), ...$manPowerRows],
         ];
     }
 
@@ -618,7 +626,7 @@ class ProjectReport
     }
 
     /**
-     * @return array{bmhp: float, rental: float, payment: float, actual: float, percentage: float, variance: float, status: ?ProjectVarianceStatus}
+     * @return array{bmhp: float, rental: float, payment: float, man_power: float, actual: float, percentage: float, variance: float, status: ?ProjectVarianceStatus}
      */
     private function costSummary(float $boqValue): array
     {
@@ -628,6 +636,7 @@ class ProjectReport
             'bmhp' => $this->actualCost()->bmhpActual(),
             'rental' => $this->actualCost()->rentalActual(),
             'payment' => $this->actualCost()->paymentActual(),
+            'man_power' => $this->actualCost()->manPowerActual(),
             'actual' => $actual,
             'percentage' => ProjectActualCost::percentage($boqValue, $actual),
             'variance' => ProjectActualCost::variance($boqValue, $actual),

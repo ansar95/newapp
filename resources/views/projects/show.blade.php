@@ -145,6 +145,23 @@
         @endif
     </div>
 
+    @can('export', $project)
+        <div class="mt-6 rounded-xl border border-maroon-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-maroon-950">Export Project</h3>
+                    <p class="mt-1 text-sm text-maroon-700">
+                        Unduh seluruh data project (BOQ, payment, pengadaan, penagihan, dokumen, man power, asset) beserta lampirannya dalam satu file ZIP. File ini dapat diimport kembali melalui menu Projects.
+                    </p>
+                </div>
+                <a href="{{ route('projects.export', $project) }}"
+                   class="inline-flex shrink-0 items-center justify-center rounded-md bg-maroon-800 px-4 py-2 text-sm font-medium text-white hover:bg-maroon-900 focus:outline-none focus:ring-2 focus:ring-maroon-600 focus:ring-offset-2">
+                    Export Project (ZIP)
+                </a>
+            </div>
+        </div>
+    @endcan
+
     @can('delete', $project)
         <div class="mt-6 rounded-xl border border-red-300 bg-white p-5 shadow-sm">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

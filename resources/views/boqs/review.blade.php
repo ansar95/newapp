@@ -35,6 +35,7 @@
                             <thead class="text-left text-xs uppercase text-maroon-700">
                             <tr>
                                 <th class="py-1 pr-3">Item</th>
+                                <th class="py-1 pr-3">Keterangan</th>
                                 <th class="py-1 pr-3">Qty</th>
                                 <th class="py-1 pr-3">Unit</th>
                                 <th class="py-1 pr-3">Harga Material</th>
@@ -47,6 +48,7 @@
                             @foreach ($cogs->items as $item)
                                 <tr class="border-t border-maroon-50">
                                     <td class="py-2 pr-3">{{ $item->name }} <span class="text-xs text-maroon-400">({{ $item->code }})</span></td>
+                                    <td class="max-w-xs py-2 pr-3 text-maroon-800">{{ $item->notes ?? '-' }}</td>
                                     <td class="py-2 pr-3">{{ number_format((float) $item->quantity, 2) }}</td>
                                     <td class="py-2 pr-3">{{ $item->unit }}</td>
                                     <td class="py-2 pr-3"><x-money :amount="$item->material_unit_price" /></td>

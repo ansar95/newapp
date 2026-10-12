@@ -31,6 +31,12 @@ class ProjectAssetPolicy
             && $user->hasPermission(Permission::ProjectView);
     }
 
+    public function updateResponsible(User $user, ProjectAsset $projectAsset): bool
+    {
+        return $user->hasPermission(Permission::AssetAssign)
+            && $projectAsset->isActive();
+    }
+
     public function release(User $user, ProjectAsset $projectAsset): bool
     {
         return $user->hasPermission(Permission::AssetRelease);

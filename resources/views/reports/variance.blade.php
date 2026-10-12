@@ -109,6 +109,7 @@
                                 <span class="block text-xs text-maroon-700">BMHP <x-money :amount="$row['bmhp_actual']" /></span>
                                 <span class="block text-xs text-maroon-700">Sewa Alat <x-money :amount="$row['rental_actual']" /></span>
                                 <span class="block text-xs text-maroon-700">Payment <x-money :amount="$row['payment_actual']" /></span>
+                                <span class="block text-xs text-maroon-700">Man Power <x-money :amount="$row['man_power_actual']" /></span>
                             </td>
                             <td @class(['px-4 py-3 text-right whitespace-nowrap font-semibold', 'text-red-700' => $isOver, 'text-maroon-950' => ! $isOver])>
                                 <x-money :amount="$row['variance']" />

@@ -67,5 +67,9 @@ enum Permission: string
     case DocumentCancel = 'document.cancel';
     case DocumentDownload = 'document.download';
 
+    case ManPowerView = 'man_power.view';
+    case ManPowerManage = 'man_power.manage';
+    case ManPowerPay = 'man_power.pay';
+
     case ReportView = 'report.view';
 }

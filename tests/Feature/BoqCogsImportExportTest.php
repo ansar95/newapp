@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Actions\BOQ\SubmitBOQ;
 use App\Enums\BoqStatus;
 use App\Support\BoqCogsCsv;
+use App\Support\SimpleXlsx;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
@@ -25,17 +27,16 @@ class BoqCogsImportExportTest extends TestCase
             ->get(route('boqs.cogs.export', $boq));
 
         $response->assertOk();
-        $response->assertHeader('content-disposition');
-        $content = $response->streamedContent();
+        $response->assertHeader('content-type', SimpleXlsx::MIME);
+        $this->assertStringContainsString('BOQ-CSV-cogs.xlsx', (string) $response->headers->get('content-disposition'));
+        $rows = SimpleXlsx::readString($response->streamedContent());
 
-        $this->assertStringContainsString('cogs_name,cogs_description,item_code,item_name', $content);
-        $this->assertStringNotContainsString('item_category', $content);
-        $this->assertStringNotContainsString('cogs_code', $content);
-        $this->assertStringContainsString('Engineering', $content);
-        $this->assertStringContainsString('ITEM-E01', $content);
+        $this->assertSame(BoqCogsCsv::HEADERS, $rows[0]);
+        $this->assertContains('Engineering', array_column($rows, 0));
+        $this->assertContains('ITEM-E01', array_column($rows, 2));
     }
 
-    public function test_can_download_cogs_csv_template(): void
+    public function test_can_download_cogs_excel_template(): void
     {
         $actor = $this->makeSuperadmin();
 
@@ -43,9 +44,101 @@ class BoqCogsImportExportTest extends TestCase
             ->get(route('boqs.cogs.template'));
 
         $response->assertOk();
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('cogs_name', $content);
-        $this->assertStringNotContainsString('cogs_code', $content);
+        $response->assertHeader('content-type', SimpleXlsx::MIME);
+        $rows = SimpleXlsx::readString($response->streamedContent());
+        $this->assertSame(BoqCogsCsv::TEMPLATE_HEADERS, $rows[0]);
+        $this->assertNotContains('item_code', $rows[0]);
+        $this->assertSame('2000000', $rows[1][7]);
+    }
+
+    public function test_excel_template_can_be_filled_and_imported(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-XLS']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-XLS');
+
+        $rows = BoqCogsCsv::templateRows();
+        $rows[] = ['Finishing', 'Cat, dempul', 'Cat tembok', 'Warna putih, 2 lapis', 12.5, 'm2', 45000.75, 15000, 'Merk Jotun'];
+        $rows[] = ['Finishing', 'Cat, dempul', 'Plamir', '', 3, 'm2', 20000, 5000, ''];
+
+        $this->actingAs($actor)
+            ->post(route('boqs.cogs.import', $boq), ['file' => UploadedFile::fake()->createWithContent('cogs.xlsx', SimpleXlsx::write($rows))])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $cogs = $boq->fresh()->cogs()->where('name', 'Finishing')->sole();
+        $this->assertSame(['ITEM-001', 'ITEM-002'], $cogs->items()->orderBy('id')->pluck('code')->all());
+        $item = $cogs->items()->where('name', 'Cat tembok')->sole();
+
+        $this->assertSame('Cat, dempul', $cogs->description);
+        $this->assertSame('Warna putih, 2 lapis', $item->description);
+        $this->assertSame(12.5, (float) $item->quantity);
+        $this->assertSame(45000.75, (float) $item->material_unit_price);
+        $this->assertSame('Merk Jotun', $item->notes);
+    }
+
+    public function test_semicolon_separated_csv_from_indonesian_excel_is_imported(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-SEMI']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-SEMI');
+
+        $csv = "\xEF\xBB\xBFcogs_name;cogs_description;item_code;item_name;item_description;quantity;unit;material_price;service_price;item_notes\r\n"
+            ."Elektrikal;Instalasi, panel;ITEM-S01;Kabel NYM 3x2,5;;2,5;m;Rp 12.500;2.500,50;\"Termasuk; klem\"\r\n";
+
+        $this->actingAs($actor)
+            ->post(route('boqs.cogs.import', $boq), ['file' => UploadedFile::fake()->createWithContent('cogs.csv', $csv)])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('boq_items', [
+            'code' => 'ITEM-S01',
+            'name' => 'Kabel NYM 3x2,5',
+            'quantity' => 2.5,
+            'material_unit_price' => 12500,
+            'service_unit_price' => 2500.5,
+            'notes' => 'Termasuk; klem',
+        ]);
+        $this->assertDatabaseHas('boqs_cogs', ['boq_id' => $boq->id, 'name' => 'Elektrikal', 'description' => 'Instalasi, panel']);
+    }
+
+    public function test_create_boq_form_can_parse_and_export_excel(): void
+    {
+        $actor = $this->makeSuperadmin();
+
+        $this->actingAs($actor)
+            ->postJson(route('boqs.cogs.parse'), ['file' => UploadedFile::fake()->createWithContent('cogs.xlsx', SimpleXlsx::write(BoqCogsCsv::templateRows()))])
+            ->assertOk()
+            ->assertJsonCount(3, 'rows')
+            ->assertJsonPath('rows.2.item_code', '')
+            ->assertJsonPath('rows.2.quantity', '10')
+            ->assertJsonPath('rows.2.item_notes', 'Termasuk aksesoris');
+
+        $this->actingAs($actor)
+            ->postJson(route('boqs.cogs.parse'), ['file' => UploadedFile::fake()->createWithContent('cogs.csv', "name\nX\n")])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['file' => 'Kolom wajib hilang: cogs_name. Gunakan template yang disediakan.']);
+
+        $response = $this->actingAs($actor)
+            ->postJson(route('boqs.cogs.form-export'), ['rows' => [[
+                'cogs_name' => 'Engineering',
+                'item_code' => 'ITEM-001',
+                'item_name' => 'Design',
+                'quantity' => '2',
+                'unit' => 'ls',
+                'material_price' => '1500.5',
+                'service_price' => '0',
+            ]]]);
+
+        $response->assertOk();
+        $response->assertHeader('content-type', SimpleXlsx::MIME);
+        $rows = SimpleXlsx::readString($response->streamedContent());
+        $this->assertSame(BoqCogsCsv::HEADERS, $rows[0]);
+        $this->assertSame(['Engineering', '', 'ITEM-001', 'Design', '', '2', 'ls', '1500.5', '0'], $rows[1]);
+
+        $this->actingAs($this->makeProjectSite())
+            ->postJson(route('boqs.cogs.form-export'), ['rows' => [['cogs_name' => 'X']]])
+            ->assertForbidden();
     }
 
     public function test_can_import_cogs_csv_into_draft_boq(): void
@@ -195,13 +288,13 @@ class BoqCogsImportExportTest extends TestCase
 
         $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-N01', 'notes' => 'Merk Schneider']);
 
-        $content = $this->actingAs($actor)
+        $rows = SimpleXlsx::readString($this->actingAs($actor)
             ->get(route('boqs.cogs.export', $boq))
             ->assertOk()
-            ->streamedContent();
+            ->streamedContent());
 
-        $this->assertStringContainsString('service_price,item_notes', $content);
-        $this->assertStringContainsString('ITEM-N01,Panel,,1,set,7500000,0,"Merk Schneider"', $content);
+        $this->assertSame(['service_price', 'item_notes'], array_slice($rows[0], 8, 2));
+        $this->assertContains(['ITEM-N01', 'Panel', '', '1', 'set', '7500000', '0', 'Merk Schneider'], array_map(fn (array $row) => array_slice($row, 2), $rows));
     }
 
     public function test_create_boq_stores_item_notes(): void
@@ -228,14 +321,136 @@ class BoqCogsImportExportTest extends TestCase
         $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-C01', 'notes' => 'Dari import CSV']);
     }
 
+    public function test_existing_item_notes_can_be_edited_and_are_shown_in_review(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-NEDT']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-NEDT');
+        $item = $boq->cogs->first()->items->first();
+
+        $this->actingAs($actor)
+            ->get(route('boqs.show', $boq))
+            ->assertOk()
+            ->assertSeeInOrder(['Item', 'Keterangan', 'Qty']);
+
+        $this->actingAs($actor)
+            ->patch(route('boqs.items.update', $item), [
+                'name' => $item->name,
+                'quantity' => $item->quantity,
+                'unit' => $item->unit,
+                'material_unit_price' => $item->material_unit_price,
+                'service_unit_price' => $item->service_unit_price,
+                'notes' => 'Sesuai gambar kerja rev. B',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Sesuai gambar kerja rev. B', $item->fresh()->notes);
+
+        app(SubmitBOQ::class)->handle($actor, $boq->fresh(['project', 'cogs.items']));
+
+        $this->actingAs($actor)
+            ->get(route('boqs.review', $boq))
+            ->assertOk()
+            ->assertSee('Keterangan')
+            ->assertSee('Sesuai gambar kerja rev. B');
+    }
+
+    public function test_create_boq_form_has_notes_column_per_item(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-NFRM']);
+
+        $this->actingAs($actor)
+            ->get(route('projects.boq.create', $project))
+            ->assertOk()
+            ->assertSee('Keterangan')
+            ->assertSee('[notes]`', false);
+    }
+
+    public function test_item_code_is_generated_per_cogs_when_left_blank(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-AUTOI']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-AUTOI');
+        $cogs = $boq->cogs->first();
+
+        $this->actingAs($actor)
+            ->get(route('boqs.show', $boq))
+            ->assertOk()
+            ->assertSee('value="ITEM-001"', false);
+
+        foreach (['Item A', 'Item B'] as $name) {
+            $this->actingAs($actor)
+                ->post(route('boqs.items.store', $cogs), [
+                    'code' => '',
+                    'name' => $name,
+                    'quantity' => 1,
+                    'unit' => 'ls',
+                    'material_unit_price' => 1000,
+                    'service_unit_price' => 0,
+                ])
+                ->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame(['ITEM-001', 'ITEM-002'], $cogs->items()->whereIn('name', ['Item A', 'Item B'])->orderBy('id')->pluck('code')->all());
+    }
+
+    public function test_create_boq_numbers_blank_item_codes_after_existing_ones(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-AUTOC']);
+
+        $boq = $this->makeDraftBoq($actor, $project, cogs: [
+            [
+                'name' => 'Engineering',
+                'items' => [
+                    ['code' => 'ITEM-002', 'name' => 'A', 'quantity' => 1, 'unit' => 'ls', 'material_unit_price' => 1000],
+                    ['code' => null, 'name' => 'B', 'quantity' => 1, 'unit' => 'ls', 'material_unit_price' => 1000],
+                ],
+            ],
+            [
+                'name' => 'Installation',
+                'items' => [
+                    ['code' => '', 'name' => 'C', 'quantity' => 1, 'unit' => 'ls', 'material_unit_price' => 1000],
+                ],
+            ],
+        ], code: 'BOQ-AUTOC');
+
+        $codes = $boq->cogs->mapWithKeys(fn ($cogs) => [$cogs->name => $cogs->items->pluck('code')->all()])->all();
+
+        $this->assertSame(['Engineering' => ['ITEM-002', 'ITEM-003'], 'Installation' => ['ITEM-001']], $codes);
+    }
+
+    public function test_csv_import_without_item_code_generates_codes(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-AUTOV']);
+        $boq = $this->makeDraftBoq($actor, $project, code: 'BOQ-AUTOV');
+
+        $csv = BoqCogsCsv::rowsToCsv([
+            ['cogs_name', 'cogs_description', 'item_name', 'item_description', 'quantity', 'unit', 'material_price', 'service_price'],
+            ['Commissioning', '', 'Test A', '', '1', 'ls', '1000', '0'],
+            ['Commissioning', '', 'Test B', '', '1', 'ls', '1000', '0'],
+        ]);
+
+        $this->actingAs($actor)
+            ->post(route('boqs.cogs.import', $boq), ['file' => UploadedFile::fake()->createWithContent('cogs.csv', $csv)])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $cogs = $boq->fresh()->cogs()->where('name', 'Commissioning')->sole();
+
+        $this->assertSame(['ITEM-001', 'ITEM-002'], $cogs->items()->orderBy('id')->pluck('code')->all());
+    }
+
     public function test_cannot_import_cogs_when_boq_is_approved(): void
     {
         $actor = $this->makeSuperadmin();
         $project = $this->makeActiveProject($actor, ['code' => 'PRJ-IMP2']);
         $boq = $this->makeApprovedBoq($actor, $project, code: 'BOQ-IMP2');
 
-        $csv = BoqCogsCsv::templateCsv();
-        $file = UploadedFile::fake()->createWithContent('cogs.csv', $csv);
+        $file = UploadedFile::fake()->createWithContent('cogs.xlsx', SimpleXlsx::write(BoqCogsCsv::templateRows()));
 
         $this->actingAs($actor)
             ->post(route('boqs.cogs.import', $boq), ['file' => $file])

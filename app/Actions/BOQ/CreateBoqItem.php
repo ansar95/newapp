@@ -14,7 +14,7 @@ class CreateBoqItem
 {
     /**
      * @param  array{
-     *     code: string,
+     *     code?: string|null,
      *     name: string,
      *     description?: string|null,
      *     notes?: string|null,
@@ -33,7 +33,7 @@ class CreateBoqItem
         $this->assertBoqEditable($cogs);
 
         $validated = Validator::make(BoqItemPriceInput::normalize($data), [
-            'code' => ['required', 'string', 'max:50'],
+            'code' => ['nullable', 'string', 'max:50'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'notes' => ['nullable', 'string', 'max:255'],
@@ -51,12 +51,14 @@ class CreateBoqItem
             'progress_percentage.max' => 'Progress harus berada antara 0 dan 100.',
         ])->validate();
 
-        if ($cogs->items()->where('code', $validated['code'])->exists()) {
+        $code = filled($validated['code'] ?? null) ? $validated['code'] : $cogs->nextItemCode();
+
+        if ($cogs->items()->where('code', $code)->exists()) {
             throw BusinessRuleException::make('Kode Item sudah digunakan pada COGS ini.');
         }
 
         return $cogs->items()->create([
-            'code' => $validated['code'],
+            'code' => $code,
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'notes' => $validated['notes'] ?? null,

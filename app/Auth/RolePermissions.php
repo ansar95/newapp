@@ -46,6 +46,9 @@ class RolePermissions
                 Permission::BillingTermManage,
                 Permission::BillingPaymentView,
                 ...self::allDocumentPermissions(),
+                Permission::ManPowerView,
+                Permission::ManPowerManage,
+                Permission::ManPowerPay,
                 Permission::ReportView,
             ],
             UserRole::BoqCostControl => [
@@ -65,6 +68,7 @@ class RolePermissions
                 Permission::ProcurementAllocate,
                 Permission::BillingView,
                 Permission::DocumentView,
+                Permission::ManPowerView,
                 Permission::ReportView,
             ],
             UserRole::Approver => [
@@ -84,6 +88,7 @@ class RolePermissions
                 Permission::BillingPaymentView,
                 Permission::DocumentView,
                 Permission::DocumentDownload,
+                Permission::ManPowerView,
                 Permission::ReportView,
             ],
             UserRole::Finance => [
@@ -109,6 +114,8 @@ class RolePermissions
                 Permission::BillingPaymentCancel,
                 Permission::BillingTermManage,
                 ...self::allDocumentPermissions(),
+                Permission::ManPowerView,
+                Permission::ManPowerPay,
                 Permission::ReportView,
             ],
             UserRole::ProjectSite => [

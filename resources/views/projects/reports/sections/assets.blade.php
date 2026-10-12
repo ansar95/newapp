@@ -23,6 +23,7 @@
                         <th class="px-4 py-2">Aset</th>
                         <th class="px-4 py-2">Kategori</th>
                         <th class="px-4 py-2">Sumber</th>
+                        <th class="px-4 py-2">Penanggung Jawab</th>
                         <th class="px-4 py-2">Digunakan Sejak</th>
                         <th class="px-4 py-2">Dikembalikan</th>
                         <th class="px-4 py-2">Status</th>
@@ -40,6 +41,12 @@
                                 {{ $assignment->asset?->source_type?->label() ?? '-' }}
                                 @if ($assignment->asset?->procurementRequestItem?->request)
                                     <div class="text-xs text-maroon-700">{{ $assignment->asset->procurementRequestItem->request->request_number }}</div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                {{ $assignment->responsible_name ?? '-' }}
+                                @if ($assignment->responsible_position)
+                                    <div class="text-xs text-maroon-700">{{ $assignment->responsible_position }}</div>
                                 @endif
                             </td>
                             <td class="px-4 py-2 whitespace-nowrap"><x-date-display :value="$assignment->assigned_at" /></td>

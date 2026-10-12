@@ -118,6 +118,22 @@ class BoqItem extends Model
         return $this->hasMany(PaymentAllocation::class);
     }
 
+    /**
+     * @param  iterable<string|null>  $existingCodes
+     */
+    public static function nextCodeAfter(iterable $existingCodes): string
+    {
+        $max = 0;
+
+        foreach ($existingCodes as $code) {
+            if (preg_match('/^ITEM-(\d+)$/i', (string) $code, $matches) === 1) {
+                $max = max($max, (int) $matches[1]);
+            }
+        }
+
+        return 'ITEM-'.str_pad((string) ($max + 1), 3, '0', STR_PAD_LEFT);
+    }
+
     public function calculateTotalPrice(): string
     {
         $total = (float) $this->quantity * (float) $this->unit_price;

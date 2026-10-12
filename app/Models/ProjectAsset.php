@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'assigned_at',
     'released_at',
     'notes',
+    'responsible_name',
+    'responsible_position',
     'status',
     'assigned_by',
     'released_by',

@@ -217,6 +217,79 @@ class AssetWorkflowTest extends TestCase
         app(ReleaseAssetFromProject::class)->handle($actor, $projectB, $assignment);
     }
 
+    public function test_responsible_person_is_stored_on_assignment_and_shown(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-ASSET-PIC1']);
+        $asset = Asset::factory()->existing()->available()->create(['created_by' => $actor->id]);
+
+        $this->actingAs($actor)
+            ->post(route('projects.assets.store', $project), [
+                'asset_id' => $asset->id,
+                'responsible_name' => 'Budi Santoso',
+                'responsible_position' => 'Site Manager',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $assignment = ProjectAsset::query()->where('asset_id', $asset->id)->sole();
+        $this->assertSame('Budi Santoso', $assignment->responsible_name);
+        $this->assertSame('Site Manager', $assignment->responsible_position);
+
+        $this->actingAs($actor)->get(route('projects.assets.index', $project))
+            ->assertOk()
+            ->assertSee('Budi Santoso')
+            ->assertSee('Site Manager');
+
+        $this->actingAs($actor)->get(route('assets.show', $asset))
+            ->assertOk()
+            ->assertSee('Budi Santoso');
+    }
+
+    public function test_responsible_person_can_be_changed_only_while_asset_is_in_use(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-ASSET-PIC2']);
+        $asset = Asset::factory()->existing()->available()->create(['created_by' => $actor->id]);
+
+        $assignment = app(AssignAssetToProject::class)->handle($actor, $project, [
+            'asset_id' => $asset->id,
+            'responsible_name' => 'Budi',
+        ]);
+
+        $this->actingAs($actor)
+            ->patch(route('projects.assets.responsible', [$project, $assignment]), [
+                'responsible_name' => 'Andi',
+                'responsible_position' => 'Mandor',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('Andi', $assignment->fresh()->responsible_name);
+        $this->assertSame('Mandor', $assignment->fresh()->responsible_position);
+
+        app(ReleaseAssetFromProject::class)->handle($actor, $project, $assignment);
+
+        $this->actingAs($actor)
+            ->patch(route('projects.assets.responsible', [$project, $assignment]), ['responsible_name' => 'Citra'])
+            ->assertForbidden();
+
+        $this->assertSame('Andi', $assignment->fresh()->responsible_name);
+    }
+
+    public function test_user_without_assign_permission_cannot_change_responsible_person(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, ['code' => 'PRJ-ASSET-PIC3']);
+        $asset = Asset::factory()->existing()->available()->create(['created_by' => $actor->id]);
+
+        $assignment = app(AssignAssetToProject::class)->handle($actor, $project, ['asset_id' => $asset->id]);
+
+        $this->actingAs($this->makeFinance())
+            ->patch(route('projects.assets.responsible', [$project, $assignment]), ['responsible_name' => 'Citra'])
+            ->assertForbidden();
+
+        $this->assertNull($assignment->fresh()->responsible_name);
+    }
+
     public function test_asset_does_not_affect_total_boq(): void
     {
         $actor = $this->makeSuperadmin();

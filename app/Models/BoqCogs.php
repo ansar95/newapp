@@ -56,6 +56,14 @@ class BoqCogs extends Model
         return $this->hasMany(BoqItem::class, 'boq_cogs_id')->orderBy('sort_order');
     }
 
+    /**
+     * Next item code in this COGS (ITEM-001, ITEM-002, ...), continuing after the highest ITEM-n code.
+     */
+    public function nextItemCode(): string
+    {
+        return BoqItem::nextCodeAfter($this->items()->pluck('code'));
+    }
+
     public function totalAmount(): float
     {
         $this->loadMissing('items');

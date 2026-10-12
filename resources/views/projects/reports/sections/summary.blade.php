@@ -33,10 +33,11 @@
     @if ($summary['cost'])
         <div>
             <h3 class="mb-3 text-sm font-bold uppercase tracking-wide text-maroon-800">Biaya Aktual vs BOQ</h3>
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <x-stat-card label="Actual BMHP" :value="rupiah($summary['cost']['bmhp'])" />
                 <x-stat-card label="Actual Sewa Alat" :value="rupiah($summary['cost']['rental'])" />
                 <x-stat-card label="Actual Payment" :value="rupiah($summary['cost']['payment'])" />
+                <x-stat-card label="Actual Man Power" :value="rupiah($summary['cost']['man_power'])" hint="Kasbon + pelunasan" />
                 <x-stat-card label="Total Actual Cost" :value="rupiah($summary['cost']['actual'])"
                              :hint="percent_format($summary['cost']['percentage'], 1).' dari nilai BOQ'" />
                 <x-stat-card label="Sisa Budget" :value="rupiah($summary['cost']['variance'])"

@@ -15,6 +15,7 @@ class UpdateBoqItem
      * @param  array{
      *     name?: string,
      *     description?: string|null,
+     *     notes?: string|null,
      *     quantity?: float|int|string,
      *     unit?: string,
      *     material_unit_price?: float|int|string,
@@ -31,12 +32,14 @@ class UpdateBoqItem
         $validated = Validator::make(BoqItemPriceInput::normalize($data), [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:255'],
             'quantity' => ['sometimes', 'required', 'numeric', 'min:0'],
             'unit' => ['sometimes', 'required', 'string', 'max:50'],
             'material_unit_price' => ['sometimes', 'required', 'numeric', 'min:0'],
             'service_unit_price' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
         ], [
+            'notes.max' => 'Keterangan maksimal 255 karakter.',
             'quantity.min' => 'Quantity tidak boleh kurang dari 0.',
             ...BoqItemPriceInput::messages(),
         ])->validate();

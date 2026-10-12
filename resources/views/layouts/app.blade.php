@@ -65,6 +65,12 @@
                     Assets
                 </a>
             @endcan
+            @can('viewAny', \App\Models\ManPower::class)
+                <a href="{{ route('man-powers.index') }}"
+                   class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('man-powers.*')) }}">
+                    Man Power
+                </a>
+            @endcan
             @if (Auth::user()->hasPermission(\App\Enums\Permission::ReportView))
                 <a href="{{ route('reports.index') }}"
                    class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('reports.*')) }}">

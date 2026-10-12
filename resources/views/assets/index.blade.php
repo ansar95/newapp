@@ -6,7 +6,7 @@
             @can('viewAny', \App\Models\Asset::class)
                 <a href="{{ route('assets.export') }}"
                    class="inline-flex items-center justify-center rounded-md border border-maroon-300 bg-white px-4 py-2 text-sm font-medium text-maroon-800 hover:bg-maroon-50">
-                    Export CSV
+                    Export Excel
                 </a>
             @endcan
             @can('create', \App\Models\Asset::class)
@@ -25,21 +25,21 @@
                 <div>
                     <h3 class="text-sm font-semibold text-maroon-950">Import Asset</h3>
                     <p class="mt-1 text-xs text-maroon-700">
-                        Upload CSV untuk menambah atau memperbarui master asset (termasuk kondisi & tahun pembelian).
-                        <a href="{{ route('assets.import.template') }}" class="font-medium text-maroon-900 underline">Download template</a>
+                        Upload file Excel (.xlsx) atau CSV untuk menambah atau memperbarui master asset (termasuk kondisi & tahun pembelian).
+                        <a href="{{ route('assets.import.template') }}" class="font-medium text-maroon-900 underline">Download template Excel</a>
                     </p>
                 </div>
                 <form method="POST" action="{{ route('assets.import') }}" enctype="multipart/form-data"
                       class="flex flex-col gap-2 sm:flex-row sm:items-center"
                       @submit="submitting = true">
                     @csrf
-                    <input type="file" name="file" accept=".csv,text/csv" required
+                    <input type="file" name="file" accept=".xlsx,.csv" required
                            class="block w-full text-sm text-maroon-800 file:mr-3 file:rounded-md file:border-0 file:bg-maroon-800 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white sm:w-auto">
                     <button type="submit"
                             class="rounded-md bg-maroon-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                             :disabled="submitting"
-                            x-text="submitting ? 'Importing...' : 'Import CSV'">
-                        Import CSV
+                            x-text="submitting ? 'Importing...' : 'Import Excel/CSV'">
+                        Import Excel/CSV
                     </button>
                 </form>
             </div>

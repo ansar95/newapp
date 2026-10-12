@@ -6,6 +6,7 @@ use App\Enums\BoqStatus;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Boq;
 use App\Models\BoqCogs;
+use App\Models\BoqItem;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\BoqItemPriceInput;
@@ -25,7 +26,7 @@ class CreateBOQ
      *         description?: string|null,
      *         sort_order?: int,
      *         items: list<array{
-     *             code: string,
+     *             code?: string|null,
      *             name: string,
      *             description?: string|null,
      *             notes?: string|null,
@@ -62,7 +63,7 @@ class CreateBOQ
             'cogs.*.description' => ['nullable', 'string'],
             'cogs.*.sort_order' => ['nullable', 'integer', 'min:0'],
             'cogs.*.items' => ['required', 'array', 'min:1'],
-            'cogs.*.items.*.code' => ['required', 'string', 'max:50'],
+            'cogs.*.items.*.code' => ['nullable', 'string', 'max:50'],
             'cogs.*.items.*.name' => ['required', 'string', 'max:255'],
             'cogs.*.items.*.description' => ['nullable', 'string'],
             'cogs.*.items.*.notes' => ['nullable', 'string', 'max:255'],
@@ -104,10 +105,22 @@ class CreateBOQ
                 ]);
 
                 $itemRows = [];
+                $usedCodes = collect($cogsData['items'])->pluck('code')->filter()->values()->all();
 
                 foreach ($cogsData['items'] as $itemIndex => $itemData) {
+                    $code = $itemData['code'] ?? null;
+
+                    if (blank($code)) {
+                        $code = BoqItem::nextCodeAfter($usedCodes);
+                        $usedCodes[] = $code;
+                    }
+
+                    if (collect($itemRows)->contains('code', $code)) {
+                        throw BusinessRuleException::make('Kode Item '.$code.' dipakai lebih dari sekali pada COGS '.$cogsData['name'].'.');
+                    }
+
                     $itemRows[] = [
-                        'code' => $itemData['code'],
+                        'code' => $code,
                         'name' => $itemData['name'],
                         'description' => $itemData['description'] ?? null,
                         'notes' => $itemData['notes'] ?? null,

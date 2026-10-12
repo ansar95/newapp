@@ -9,6 +9,7 @@ use App\Models\BoqItem;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\BoqCogsCsv;
+use App\Support\SimpleXlsx;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\Support\BuildsWorkflowFixtures;
@@ -156,17 +157,17 @@ class BoqMaterialServicePriceTest extends TestCase
 
     public function test_csv_template_and_export_use_material_and_service_columns(): void
     {
-        $this->assertStringContainsString('quantity,unit,material_price,service_price', BoqCogsCsv::templateCsv());
+        $this->assertSame(['quantity', 'unit', 'material_price', 'service_price'], array_slice(BoqCogsCsv::templateRows()[0], 4, 4));
 
         $boq = $this->makeSplitBoq();
 
-        $content = $this->actingAs($this->admin)
+        $rows = SimpleXlsx::readString($this->actingAs($this->admin)
             ->get(route('boqs.cogs.export', $boq))
             ->assertOk()
-            ->streamedContent();
+            ->streamedContent());
 
-        $this->assertStringContainsString('material_price,service_price', $content);
-        $this->assertStringContainsString('ITEM-A,Kabel,,10,m,50000,20000', $content);
+        $this->assertSame(BoqCogsCsv::HEADERS, $rows[0]);
+        $this->assertContains(['ITEM-A', 'Kabel', '', '10', 'm', '50000', '20000'], array_map(fn (array $row) => array_slice($row, 2, 7), $rows));
     }
 
     public function test_csv_import_accepts_new_and_legacy_price_columns(): void

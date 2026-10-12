@@ -61,6 +61,7 @@ class BoqRevisionController extends Controller
         $updateBoqItem->handle($request->user(), $item, $request->only([
             'name',
             'description',
+            'notes',
             'quantity',
             'unit',
             'material_unit_price',

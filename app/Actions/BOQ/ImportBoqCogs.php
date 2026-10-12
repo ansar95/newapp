@@ -8,6 +8,7 @@ use App\Models\Boq;
 use App\Models\BoqCogs;
 use App\Models\User;
 use App\Support\BoqCogsCsv;
+use App\Support\SpreadsheetFile;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -28,13 +29,8 @@ class ImportBoqCogs
 
         Validator::make(
             ['file' => $file],
-            [
-                'file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
-            ],
-            [
-                'file.mimes' => 'File harus berformat CSV.',
-                'file.max' => 'Ukuran file maksimal 2MB.',
-            ]
+            ['file' => SpreadsheetFile::UPLOAD_RULES],
+            SpreadsheetFile::uploadMessages()
         )->validate();
 
         try {
@@ -62,7 +58,7 @@ class ImportBoqCogs
                 $validated = Validator::make($row, [
                     'cogs_name' => ['required', 'string', 'max:255'],
                     'cogs_description' => ['nullable', 'string'],
-                    'item_code' => ['required', 'string', 'max:50'],
+                    'item_code' => ['nullable', 'string', 'max:50'],
                     'item_name' => ['required', 'string', 'max:255'],
                     'item_description' => ['nullable', 'string'],
                     'quantity' => ['required', 'numeric', 'min:0'],
@@ -90,14 +86,16 @@ class ImportBoqCogs
 
                 $cogs = $cogsByName[$nameKey];
 
-                if ($cogs->items->contains(fn ($item) => $item->code === $validated['item_code'])) {
+                $itemCode = $validated['item_code'] ?? null;
+
+                if (filled($itemCode) && $cogs->items->contains(fn ($item) => $item->code === $itemCode)) {
                     $itemsSkipped++;
 
                     continue;
                 }
 
                 $item = app(CreateBoqItem::class)->handle($actor, $cogs, [
-                    'code' => $validated['item_code'],
+                    'code' => $itemCode,
                     'name' => $validated['item_name'],
                     'description' => $validated['item_description'] ?? null,
                     'quantity' => $validated['quantity'],

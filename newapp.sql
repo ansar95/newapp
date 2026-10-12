@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 10 Okt 2026 pada 04.34
+-- Waktu pembuatan: 12 Okt 2026 pada 00.50
 -- Versi server: 8.4.3
 -- Versi PHP: 8.3.16
 
@@ -94,7 +94,8 @@ INSERT INTO `boqs` (`id`, `project_id`, `code`, `revision_number`, `status`, `su
 (3, 3, 'BOQ-PRJ003', 1, 'REVISION_REQUIRED', 1, '2026-09-21 21:51:42', 1, '2026-09-23 21:51:42', 'Harga item cabling perlu disesuaikan.', '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
 (4, 4, 'BOQ-PRJ004', 1, 'APPROVED', 1, '2026-09-15 21:51:42', 1, '2026-09-17 21:51:42', 'Disetujui untuk eksekusi.', '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
 (5, 5, 'BOQ-PRJ005', 1, 'APPROVED', 1, '2026-08-26 21:51:43', 1, '2026-08-28 21:51:43', 'Approved for site execution.', '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(6, 8, 'BOQ-Test 002', 1, 'APPROVED', 1, '2026-10-04 22:12:41', 1, '2026-10-04 22:15:28', 'Confirmed', '2026-10-04 22:12:29', '2026-10-04 22:15:28');
+(6, 8, 'BOQ-Test 002', 1, 'APPROVED', 1, '2026-10-04 22:12:41', 1, '2026-10-04 22:15:28', 'Confirmed', '2026-10-04 22:12:29', '2026-10-04 22:15:28'),
+(7, 6, 'BOQ-TEST 001', 1, 'WAITING_APPROVAL', 1, '2026-10-11 04:10:02', NULL, NULL, NULL, '2026-10-11 04:09:49', '2026-10-11 04:10:02');
 
 -- --------------------------------------------------------
 
@@ -139,7 +140,10 @@ INSERT INTO `boqs_cogs` (`id`, `boq_id`, `code`, `name`, `description`, `sort_or
 (19, 5, 'COGS-LV-003', 'Installation', 'On-site installation works', 3, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
 (20, 5, 'COGS-LV-004', 'Testing', 'Testing and commissioning', 4, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
 (21, 6, 'COGS-001', 'Engineering', 'Design works', 1, '2026-10-04 22:12:29', '2026-10-04 22:12:29'),
-(22, 6, 'COGS-002', 'Installation', 'Site works', 2, '2026-10-04 22:12:29', '2026-10-04 22:12:29');
+(22, 6, 'COGS-002', 'Installation', 'Site works', 2, '2026-10-04 22:12:29', '2026-10-04 22:12:29'),
+(23, 7, 'COGS-001', 'PEKERJAAN PERSIAPAN DAN UMUM', '-', 1, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(24, 7, 'COGS-002', 'PEKERJAAN PEMBERSIHAN DAN PENGOSONGAN LAHAN SITE COMMAND POST', '-', 2, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(25, 7, 'COGS-003', 'PEKERJAAN SIPIL & STRUKTUR SITE COMMAND POST', '-', 3, '2026-10-11 04:09:49', '2026-10-11 04:09:49');
 
 -- --------------------------------------------------------
 
@@ -153,6 +157,7 @@ CREATE TABLE `boq_items` (
   `code` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
+  `notes` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `quantity` decimal(18,4) NOT NULL,
   `unit` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `material_unit_price` decimal(18,2) NOT NULL DEFAULT '0.00',
@@ -169,50 +174,75 @@ CREATE TABLE `boq_items` (
 -- Dumping data untuk tabel `boq_items`
 --
 
-INSERT INTO `boq_items` (`id`, `boq_cogs_id`, `code`, `name`, `description`, `quantity`, `unit`, `material_unit_price`, `service_unit_price`, `unit_price`, `total_price`, `progress_percentage`, `sort_order`, `created_at`, `updated_at`) VALUES
-(1, 1, 'ITEM-STD-E01', 'Design Drawing', NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(2, 1, 'ITEM-STD-E02', 'Structural Calculation', NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(3, 1, 'ITEM-STD-E03', 'Shop Drawing', NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(4, 2, 'ITEM-STD-P01', 'Cable Tray Supply', NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(5, 2, 'ITEM-STD-P02', 'Control Panel Supply', NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(6, 3, 'ITEM-STD-I01', 'Cable Tray Installation', NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(7, 3, 'ITEM-STD-I02', 'Panel Installation', NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(8, 4, 'ITEM-STD-T01', 'Testing & Commissioning', NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(9, 5, 'ITEM-DC-E01', 'Design Drawing', NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 100.00, 1, '2026-09-25 21:51:42', '2026-09-26 02:28:34'),
-(10, 5, 'ITEM-DC-E02', 'Structural Calculation', NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 100.00, 2, '2026-09-25 21:51:42', '2026-09-26 02:28:52'),
-(11, 5, 'ITEM-DC-E03', 'Shop Drawing', NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(12, 6, 'ITEM-DC-P01', 'Cable Tray Supply', NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(13, 6, 'ITEM-DC-P02', 'Control Panel Supply', NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(14, 7, 'ITEM-DC-I01', 'Cable Tray Installation', NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(15, 7, 'ITEM-DC-I02', 'Panel Installation', NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(16, 8, 'ITEM-DC-T01', 'Testing & Commissioning', NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(17, 9, 'ITEM-RT-E01', 'Design Drawing', NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(18, 9, 'ITEM-RT-E02', 'Structural Calculation', NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(19, 9, 'ITEM-RT-E03', 'Shop Drawing', NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(20, 10, 'ITEM-RT-P01', 'Cable Tray Supply', NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(21, 10, 'ITEM-RT-P02', 'Control Panel Supply', NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(22, 11, 'ITEM-RT-I01', 'Cable Tray Installation', NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(23, 11, 'ITEM-RT-I02', 'Panel Installation', NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(24, 12, 'ITEM-RT-T01', 'Testing & Commissioning', NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(25, 13, 'ITEM-UT-E01', 'Design Drawing', NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(26, 13, 'ITEM-UT-E02', 'Structural Calculation', NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(27, 13, 'ITEM-UT-E03', 'Shop Drawing', NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(28, 14, 'ITEM-UT-P01', 'Cable Tray Supply', NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(29, 14, 'ITEM-UT-P02', 'Control Panel Supply', NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(30, 15, 'ITEM-UT-I01', 'Cable Tray Installation', NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(31, 15, 'ITEM-UT-I02', 'Panel Installation', NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(32, 16, 'ITEM-UT-T01', 'Testing & Commissioning', NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
-(33, 17, 'ITEM-LV-E01', 'Design Drawing', NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 100.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(34, 17, 'ITEM-LV-E02', 'Structural Calculation', NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 75.00, 2, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(35, 17, 'ITEM-LV-E03', 'Shop Drawing', NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 40.00, 3, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(36, 18, 'ITEM-LV-P01', 'Cable Tray Supply', NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 80.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(37, 18, 'ITEM-LV-P02', 'Control Panel Supply', NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 100.00, 2, '2026-09-25 21:51:43', '2026-10-06 22:49:46'),
-(38, 19, 'ITEM-LV-I01', 'Cable Tray Installation', NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 35.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(39, 19, 'ITEM-LV-I02', 'Panel Installation', NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 20.00, 2, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(40, 20, 'ITEM-LV-T01', 'Testing & Commissioning', NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 10.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(41, 21, 'ITEM-E01', 'Design Drawing', NULL, 1.0000, 'ls', 2000000.00, 0.00, 2000000.00, 2000000.00, 100.00, 1, '2026-10-04 22:12:29', '2026-10-04 22:18:03'),
-(42, 21, 'ITEM-E02', 'Structural Calculation', NULL, 1.0000, 'ls', 3000000.00, 0.00, 3000000.00, 3000000.00, 100.00, 2, '2026-10-04 22:12:29', '2026-10-04 22:18:27'),
-(43, 22, 'ITEM-I01', 'Cable Tray', NULL, 10.0000, 'm', 100000.00, 0.00, 100000.00, 1000000.00, 0.00, 1, '2026-10-04 22:12:29', '2026-10-04 22:12:29');
+INSERT INTO `boq_items` (`id`, `boq_cogs_id`, `code`, `name`, `description`, `notes`, `quantity`, `unit`, `material_unit_price`, `service_unit_price`, `unit_price`, `total_price`, `progress_percentage`, `sort_order`, `created_at`, `updated_at`) VALUES
+(1, 1, 'ITEM-STD-E01', 'Design Drawing', NULL, NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(2, 1, 'ITEM-STD-E02', 'Structural Calculation', NULL, NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(3, 1, 'ITEM-STD-E03', 'Shop Drawing', NULL, NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(4, 2, 'ITEM-STD-P01', 'Cable Tray Supply', NULL, NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(5, 2, 'ITEM-STD-P02', 'Control Panel Supply', NULL, NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(6, 3, 'ITEM-STD-I01', 'Cable Tray Installation', NULL, NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(7, 3, 'ITEM-STD-I02', 'Panel Installation', NULL, NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(8, 4, 'ITEM-STD-T01', 'Testing & Commissioning', NULL, NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(9, 5, 'ITEM-DC-E01', 'Design Drawing', NULL, NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 100.00, 1, '2026-09-25 21:51:42', '2026-09-26 02:28:34'),
+(10, 5, 'ITEM-DC-E02', 'Structural Calculation', NULL, NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 100.00, 2, '2026-09-25 21:51:42', '2026-09-26 02:28:52'),
+(11, 5, 'ITEM-DC-E03', 'Shop Drawing', NULL, NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(12, 6, 'ITEM-DC-P01', 'Cable Tray Supply', NULL, NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(13, 6, 'ITEM-DC-P02', 'Control Panel Supply', NULL, NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(14, 7, 'ITEM-DC-I01', 'Cable Tray Installation', NULL, NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(15, 7, 'ITEM-DC-I02', 'Panel Installation', NULL, NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(16, 8, 'ITEM-DC-T01', 'Testing & Commissioning', NULL, NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(17, 9, 'ITEM-RT-E01', 'Design Drawing', NULL, NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(18, 9, 'ITEM-RT-E02', 'Structural Calculation', NULL, NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(19, 9, 'ITEM-RT-E03', 'Shop Drawing', NULL, NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(20, 10, 'ITEM-RT-P01', 'Cable Tray Supply', NULL, NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(21, 10, 'ITEM-RT-P02', 'Control Panel Supply', NULL, NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(22, 11, 'ITEM-RT-I01', 'Cable Tray Installation', NULL, NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(23, 11, 'ITEM-RT-I02', 'Panel Installation', NULL, NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(24, 12, 'ITEM-RT-T01', 'Testing & Commissioning', NULL, NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(25, 13, 'ITEM-UT-E01', 'Design Drawing', NULL, NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(26, 13, 'ITEM-UT-E02', 'Structural Calculation', NULL, NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(27, 13, 'ITEM-UT-E03', 'Shop Drawing', NULL, NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 0.00, 3, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(28, 14, 'ITEM-UT-P01', 'Cable Tray Supply', NULL, NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(29, 14, 'ITEM-UT-P02', 'Control Panel Supply', NULL, NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(30, 15, 'ITEM-UT-I01', 'Cable Tray Installation', NULL, NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(31, 15, 'ITEM-UT-I02', 'Panel Installation', NULL, NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 0.00, 2, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(32, 16, 'ITEM-UT-T01', 'Testing & Commissioning', NULL, NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 0.00, 1, '2026-09-25 21:51:42', '2026-09-25 21:51:42'),
+(33, 17, 'ITEM-LV-E01', 'Design Drawing', NULL, NULL, 1.0000, 'lot', 12000000.00, 0.00, 12000000.00, 12000000.00, 100.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(34, 17, 'ITEM-LV-E02', 'Structural Calculation', NULL, NULL, 1.0000, 'lot', 8000000.00, 0.00, 8000000.00, 8000000.00, 75.00, 2, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(35, 17, 'ITEM-LV-E03', 'Shop Drawing', NULL, NULL, 1.0000, 'lot', 10000000.00, 0.00, 10000000.00, 10000000.00, 40.00, 3, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(36, 18, 'ITEM-LV-P01', 'Cable Tray Supply', NULL, NULL, 200.0000, 'm', 85000.00, 0.00, 85000.00, 17000000.00, 80.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(37, 18, 'ITEM-LV-P02', 'Control Panel Supply', NULL, NULL, 4.0000, 'set', 7500000.00, 0.00, 7500000.00, 30000000.00, 100.00, 2, '2026-09-25 21:51:43', '2026-10-06 22:49:46'),
+(38, 19, 'ITEM-LV-I01', 'Cable Tray Installation', NULL, NULL, 200.0000, 'm', 45000.00, 0.00, 45000.00, 9000000.00, 35.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(39, 19, 'ITEM-LV-I02', 'Panel Installation', NULL, NULL, 4.0000, 'set', 2500000.00, 0.00, 2500000.00, 10000000.00, 20.00, 2, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(40, 20, 'ITEM-LV-T01', 'Testing & Commissioning', NULL, NULL, 1.0000, 'lot', 15000000.00, 0.00, 15000000.00, 15000000.00, 10.00, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(41, 21, 'ITEM-E01', 'Design Drawing', NULL, NULL, 1.0000, 'ls', 2000000.00, 0.00, 2000000.00, 2000000.00, 100.00, 1, '2026-10-04 22:12:29', '2026-10-04 22:18:03'),
+(42, 21, 'ITEM-E02', 'Structural Calculation', NULL, NULL, 1.0000, 'ls', 3000000.00, 0.00, 3000000.00, 3000000.00, 100.00, 2, '2026-10-04 22:12:29', '2026-10-04 22:18:27'),
+(43, 22, 'ITEM-I01', 'Cable Tray', NULL, NULL, 10.0000, 'm', 100000.00, 0.00, 100000.00, 1000000.00, 0.00, 1, '2026-10-04 22:12:29', '2026-10-04 22:12:29'),
+(44, 23, '1', 'Pengurusan IMB / PBG', NULL, NULL, 1.0000, 'ls', 0.00, 55000000.00, 55000000.00, 55000000.00, 0.00, 1, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(45, 23, '2', 'Mobilisasi dan Demobilisasi (Man Power, Peralatan, Material)', NULL, NULL, 1.0000, 'ls', 0.00, 110000000.00, 110000000.00, 110000000.00, 0.00, 2, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(46, 23, '3', 'Project Management, Engineering, dan Fit to Work assessment', NULL, NULL, 1.0000, 'm', 0.00, 590540517.00, 590540517.00, 590540517.00, 0.00, 3, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(47, 23, '4', 'Temporary Facilities (Direksi Keet, Air Kerja & Listrik Kerja)', NULL, NULL, 1.0000, 'ls', 0.00, 185350000.00, 185350000.00, 185350000.00, 0.00, 4, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(48, 23, '5', 'Perlengkapan dan Peralatan safety selama masa pekerjaan (banner dan petunjuk keselamatan, APD pekerja khusus), beserta HSE Report dan HSE Plan', NULL, NULL, 1.0000, 'ls', 0.00, 37070000.00, 37070000.00, 37070000.00, 0.00, 5, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(49, 23, '6', 'Pengujian Boring : Boring Log, Grafik Sondir, Data Laboratorium, Dokumentasi', NULL, NULL, 1.0000, 'ls', 0.00, 18000000.00, 18000000.00, 18000000.00, 0.00, 6, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(50, 24, '7', 'Pembersihan Lahan', NULL, NULL, 171.0000, 'm2', 0.00, 62000.00, 62000.00, 10602000.00, 0.00, 1, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(51, 24, '8', 'Pembongkaran dan Pemindahan dua papan pengumuman, dan tiang CCTV', NULL, NULL, 1.0000, 'ls', 0.00, 8900000.00, 8900000.00, 8900000.00, 0.00, 2, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(52, 24, '9', 'Pembongkaran Shelter Sepeda, pagar BRC / harmonika, grounding eksisting (inc. concrete pit c/w cover)', NULL, NULL, 1.0000, 'ls', 0.00, 10780000.00, 10780000.00, 10780000.00, 0.00, 3, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(53, 24, '10', 'Pembongkaran Jalan Beton', NULL, NULL, 14.4000, 'm3', 67900.00, 815696.00, 883596.00, 12723782.40, 0.00, 4, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(54, 24, '11', 'Pembongkaran Jalan Setapak', NULL, NULL, 4.8000, 'm3', 67900.00, 815696.00, 883596.00, 4241260.80, 0.00, 5, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(55, 24, '12', 'Pembongkaran Kansteen', NULL, NULL, 4.8000, 'm3', 6632.00, 430934.00, 437566.00, 2100316.80, 0.00, 6, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(56, 24, '13', 'Penutupan dan penambahan Cover Saluran Drainase Eksisting', NULL, NULL, 1.0000, 'ls', 0.00, 16000000.00, 16000000.00, 16000000.00, 0.00, 7, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(57, 24, '14', 'Relokasi utilitas kabel bawah tanah', NULL, NULL, 1.0000, 'ls', 0.00, 9700000.00, 9700000.00, 9700000.00, 0.00, 8, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(58, 25, '15', 'Pemasangan Bouwplank', NULL, NULL, 52.5000, 'm2', 61144.00, 59526.00, 120670.00, 6335175.00, 0.00, 1, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(59, 25, '16', 'Galian Tanah', NULL, NULL, 134.3100, 'm3', 0.00, 260661.00, 260661.00, 35009378.91, 0.00, 2, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(60, 25, '17', 'Backfill', NULL, NULL, 64.5000, 'm3', 0.00, 70890.00, 70890.00, 4572405.00, 0.00, 3, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(61, 25, '18', 'Pasir Urug', NULL, NULL, 7.9400, 'm3', 327600.00, 85068.00, 412668.00, 3276583.92, 0.00, 4, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(62, 25, '19', 'Beton', NULL, NULL, 50.8200, 'm3', 1198624.00, 203479.00, 1402103.00, 71254874.46, 0.00, 5, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(63, 25, '20', 'Penulangan', NULL, NULL, 1.0000, 'ls', 45835203.00, 11241016.00, 57076219.00, 57076219.00, 0.00, 6, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(64, 25, '21', 'Lantai Kerja', NULL, NULL, 3.9700, 'm3', 704346.00, 168976.00, 873322.00, 3467088.34, 0.00, 7, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(65, 25, '22', 'Curing Beton', NULL, NULL, 72.6000, 'm2', 54859.00, 3970.00, 58829.00, 4270985.40, 0.00, 8, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(66, 25, '23', 'Bekisting Pondasi', NULL, NULL, 224.4000, 'm2', 134480.00, 86300.00, 220780.00, 49543032.00, 0.00, 9, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(67, 25, '24', 'Galian Tanah', NULL, NULL, 59.8500, 'm3', 0.00, 260661.00, 260661.00, 15600560.85, 0.00, 10, '2026-10-11 04:09:49', '2026-10-11 04:09:49'),
+(68, 25, '25', 'Pasir Urug', NULL, NULL, 17.1000, 'm3', 327600.00, 85068.00, 412668.00, 7056622.80, 0.00, 11, '2026-10-11 04:09:49', '2026-10-11 04:09:49');
 
 -- --------------------------------------------------------
 
@@ -445,6 +475,48 @@ CREATE TABLE `job_batches` (
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `man_powers`
+--
+
+CREATE TABLE `man_powers` (
+  `id` bigint UNSIGNED NOT NULL,
+  `code` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `position` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `daily_wage` decimal(18,2) NOT NULL DEFAULT '0.00',
+  `phone` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `man_power_transactions`
+--
+
+CREATE TABLE `man_power_transactions` (
+  `id` bigint UNSIGNED NOT NULL,
+  `project_man_power_id` bigint UNSIGNED NOT NULL,
+  `type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `transaction_date` date NOT NULL,
+  `amount` decimal(18,2) NOT NULL,
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PAID',
+  `created_by` bigint UNSIGNED NOT NULL,
+  `cancelled_by` bigint UNSIGNED DEFAULT NULL,
+  `cancelled_at` timestamp NULL DEFAULT NULL,
+  `cancel_reason` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `migrations`
 --
 
@@ -493,7 +565,12 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (32, '2026_10_09_104417_add_material_and_service_prices_to_boq_items_table', 10),
 (33, '2026_10_09_110008_drop_category_from_boq_items_table', 11),
 (34, '2026_10_09_115152_replace_bmhp_purchases_with_procurement_requests', 12),
-(35, '2026_10_10_035713_add_trigger_progress_to_project_terms_table', 13);
+(35, '2026_10_10_035713_add_trigger_progress_to_project_terms_table', 13),
+(36, '2026_10_10_134434_add_notes_to_boq_items_table', 14),
+(37, '2026_10_11_231614_add_responsible_person_to_project_assets_table', 15),
+(38, '2026_10_11_231848_create_man_powers_table', 16),
+(39, '2026_10_11_231849_create_project_man_powers_table', 16),
+(40, '2026_10_11_231851_create_man_power_transactions_table', 16);
 
 -- --------------------------------------------------------
 
@@ -819,6 +896,8 @@ CREATE TABLE `project_assets` (
   `assigned_at` timestamp NULL DEFAULT NULL,
   `released_at` timestamp NULL DEFAULT NULL,
   `notes` text COLLATE utf8mb4_unicode_ci,
+  `responsible_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `responsible_position` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'IN_USE',
   `assigned_by` bigint UNSIGNED NOT NULL,
   `released_by` bigint UNSIGNED DEFAULT NULL,
@@ -830,11 +909,11 @@ CREATE TABLE `project_assets` (
 -- Dumping data untuk tabel `project_assets`
 --
 
-INSERT INTO `project_assets` (`id`, `project_id`, `asset_id`, `assigned_at`, `released_at`, `notes`, `status`, `assigned_by`, `released_by`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, '2026-05-25 21:51:43', '2026-08-25 21:51:43', 'Riwayat penggunaan sebelumnya.', 'RELEASED', 1, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
-(2, 1, 1, '2026-09-20 21:51:43', '2026-10-04 22:40:41', 'Digunakan tim engineering.', 'RELEASED', 1, 1, '2026-09-25 21:51:43', '2026-10-04 22:40:41'),
-(3, 6, 4, '2026-10-04 19:17:37', NULL, NULL, 'IN_USE', 1, NULL, '2026-10-04 19:17:37', '2026-10-04 19:17:37'),
-(4, 8, 3, '2026-10-04 22:19:23', NULL, NULL, 'IN_USE', 1, NULL, '2026-10-04 22:19:23', '2026-10-04 22:19:23');
+INSERT INTO `project_assets` (`id`, `project_id`, `asset_id`, `assigned_at`, `released_at`, `notes`, `responsible_name`, `responsible_position`, `status`, `assigned_by`, `released_by`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, '2026-05-25 21:51:43', '2026-08-25 21:51:43', 'Riwayat penggunaan sebelumnya.', NULL, NULL, 'RELEASED', 1, 1, '2026-09-25 21:51:43', '2026-09-25 21:51:43'),
+(2, 1, 1, '2026-09-20 21:51:43', '2026-10-04 22:40:41', 'Digunakan tim engineering.', NULL, NULL, 'RELEASED', 1, 1, '2026-09-25 21:51:43', '2026-10-04 22:40:41'),
+(3, 6, 4, '2026-10-04 19:17:37', NULL, NULL, NULL, NULL, 'IN_USE', 1, NULL, '2026-10-04 19:17:37', '2026-10-04 19:17:37'),
+(4, 8, 3, '2026-10-04 22:19:23', NULL, NULL, NULL, NULL, 'IN_USE', 1, NULL, '2026-10-04 22:19:23', '2026-10-04 22:19:23');
 
 -- --------------------------------------------------------
 
@@ -951,6 +1030,26 @@ INSERT INTO `project_document_versions` (`id`, `project_document_id`, `version_n
 -- --------------------------------------------------------
 
 --
+-- Struktur dari tabel `project_man_powers`
+--
+
+CREATE TABLE `project_man_powers` (
+  `id` bigint UNSIGNED NOT NULL,
+  `project_id` bigint UNSIGNED NOT NULL,
+  `man_power_id` bigint UNSIGNED NOT NULL,
+  `position` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `daily_wage` decimal(18,2) NOT NULL,
+  `work_days` int UNSIGNED NOT NULL DEFAULT '0',
+  `start_date` date DEFAULT NULL,
+  `notes` text COLLATE utf8mb4_unicode_ci,
+  `created_by` bigint UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Struktur dari tabel `project_terms`
 --
 
@@ -981,7 +1080,8 @@ INSERT INTO `project_terms` (`id`, `project_id`, `term_number`, `term_name`, `ca
 (1, 5, 1, 'Uang Muka', 'PERCENTAGE', 20.0000, 620000000.00, 'MANUAL', 'Setelah kontrak ditandatangani', NULL, NULL, NULL, 'READY', 1, '2026-10-06 00:47:15', '2026-10-06 00:47:15'),
 (2, 5, 2, 'Progress 50%', 'PERCENTAGE', 30.0000, 930000000.00, 'PROGRESS', 'Progress fisik 50%', 50.00, NULL, NULL, 'READY', 1, '2026-10-06 00:47:15', '2026-10-06 00:47:15'),
 (3, 5, 3, 'Progress 100%', 'PERCENTAGE', 30.0000, 930000000.00, 'PROGRESS', 'Progress fisik 100%', 100.00, NULL, NULL, 'READY', 1, '2026-10-06 00:47:15', '2026-10-06 22:43:25'),
-(4, 5, 4, 'Retensi', 'PERCENTAGE', 20.0000, 620000000.00, 'MILESTONE', 'BAST / masa pemeliharaan selesai', NULL, NULL, NULL, 'NOT_READY', 1, '2026-10-06 00:47:15', '2026-10-06 00:47:15');
+(4, 5, 4, 'Retensi', 'PERCENTAGE', 20.0000, 620000000.00, 'MILESTONE', 'BAST / masa pemeliharaan selesai', NULL, NULL, NULL, 'NOT_READY', 1, '2026-10-06 00:47:15', '2026-10-06 00:47:15'),
+(5, 8, 1, 'TERMIN 2', 'PERCENTAGE', 49.9999, 49999900.00, 'PROGRESS', NULL, 50.00, '2026-10-20', NULL, 'NOT_READY', 1, '2026-10-09 20:59:23', '2026-10-09 20:59:23');
 
 -- --------------------------------------------------------
 
@@ -1003,10 +1103,10 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('coEjnH9hOl9RvtPIXzmyfNDSWJ4hD4jmiVI11cz6', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36', 'eyJfdG9rZW4iOiJ0M005OFZCRG5UQ2VZV0FBY0VDcjRCQzR5ZTVlU1dGblJ5WmdsYmRpIiwidXJsIjp7ImludGVuZGVkIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDBcL3Byb2plY3RzXC84XC9wcm9jdXJlbWVudFwvY3JlYXRlP3R5cGU9Qk1IUCJ9LCJfcHJldmlvdXMiOnsidXJsIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDBcL2xvZ2luIiwicm91dGUiOiJsb2dpbiJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX19', 1791600312),
-('MEAyf1SPXdigjn7b1wCIavPCRpYAfom3YRvXpAf9', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36', 'eyJfdG9rZW4iOiJjRjVYbWZYVjBiOFRRQzh1b3dPcElBR0NSYXlXZjR4aWVnb0dQSzIxIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDAwXC9wcm9qZWN0c1wvOFwvcmVwb3J0cz9zZWN0aW9uPWJpbGxpbmciLCJyb3V0ZSI6InByb2plY3RzLnJlcG9ydHMuaW5kZXgifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJjZTNmYmE4YmYwMmY2MjhhNTJkZjk4NDRjNzU3ZGUxOTE1YzQ4NzRhMDk3Yzg1YjE4ZGYxMjgzM2VlYmU4YTdhIn0=', 1791606854),
-('Q22CaNGHEBEJnZBPfBCkkoYXAnRyXJXWtvCdAVwg', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiIwcXhNTEVBZU1Nb3lIb3czVThzblVwamdrdlQxOEFhckpzUTREZHNMIiwidXJsIjp7ImludGVuZGVkIjoiaHR0cDpcL1wvMTI3LjAuMC4xOjgwMDBcL3Byb2plY3RzXC83In0sIl9wcmV2aW91cyI6eyJ1cmwiOiJodHRwOlwvXC8xMjcuMC4wLjE6ODAwMFwvcHJvamVjdHNcLzciLCJyb3V0ZSI6InByb2plY3RzLnNob3cifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119fQ==', 1791600091),
-('uBUsKnBg2OTNGAw9JI0WP7TCq5MkW70ctsH107VK', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiJCWDQ2TmF3OFNCdlJXcjVtQ00yd0M0bkZaR2ViYXM2dVBwVXVlanNTIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9wcm9qZWN0c1wvOFwvYmlsbGluZyIsInJvdXRlIjoicHJvamVjdHMuYmlsbGluZy5pbmRleCJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX0sImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjoxLCJwYXNzd29yZF9oYXNoX3dlYiI6ImNlM2ZiYThiZjAyZjYyOGE1MmRmOTg0NGM3NTdkZTE5MTVjNDg3NGEwOTdjODViMThkZjEyODMzZWViZThhN2EifQ==', 1791600859);
+('GIG8xvY1gEMKcD8TYnP1BQp9v3k10lMG8o6hYxsY', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36', 'eyJfdG9rZW4iOiJkZml6UWk5NU1wUXFhSnVPTWlFd3Y4NURCbnM4SWZoamxYWkp2T3RvIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDAwXC9ib3FzXC8yIiwicm91dGUiOiJib3FzLnNob3cifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJjZTNmYmE4YmYwMmY2MjhhNTJkZjk4NDRjNzU3ZGUxOTE1YzQ4NzRhMDk3Yzg1YjE4ZGYxMjgzM2VlYmU4YTdhIn0=', 1791719798),
+('hiej7G0EUi59oeql4BJyDl44AjR8PoNMD21njTfM', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiJIY21GUzRVdFRsMFVGZFRMWW9uMmJiVWpLRzh3TzNldXAwNmZudWFKIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9ib3EtY29nc1wvdGVtcGxhdGUiLCJyb3V0ZSI6ImJvcXMuY29ncy50ZW1wbGF0ZSJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX0sImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjoxLCJwYXNzd29yZF9oYXNoX3dlYiI6ImNlM2ZiYThiZjAyZjYyOGE1MmRmOTg0NGM3NTdkZTE5MTVjNDg3NGEwOTdjODViMThkZjEyODMzZWViZThhN2EifQ==', 1791765971),
+('nbyjMrRjfyzdxP3S0yxAwk4W1PMeJgfTvnzMJRYJ', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiI4OWc0bm53cGZqRUlZY1BqQXk5Y0ZuUExWU1NxZVpBVlN0dXJ0bnV2IiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9wcm9qZWN0c1wvNlwvYm9xIiwicm91dGUiOiJwcm9qZWN0cy5ib3EuaW5kZXgifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJjZTNmYmE4YmYwMmY2MjhhNTJkZjk4NDRjNzU3ZGUxOTE1YzQ4NzRhMDk3Yzg1YjE4ZGYxMjgzM2VlYmU4YTdhIn0=', 1791722615),
+('XLbdtn951lhr7tDk2pOmKXAo8GNsvrV7vgKMjIiq', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36', 'eyJfdG9rZW4iOiJ0U250N3NMbk1jdGtsdm5hVVFBQjZ0dmZZOFF3b0NKTDFSbkdUYllrIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDAwXC9ib3EtY29nc1wvdGVtcGxhdGUiLCJyb3V0ZSI6ImJvcXMuY29ncy50ZW1wbGF0ZSJ9LCJfZmxhc2giOnsib2xkIjpbXSwibmV3IjpbXX0sImxvZ2luX3dlYl81OWJhMzZhZGRjMmIyZjk0MDE1ODBmMDE0YzdmNThlYTRlMzA5ODlkIjoxLCJwYXNzd29yZF9oYXNoX3dlYiI6ImNlM2ZiYThiZjAyZjYyOGE1MmRmOTg0NGM3NTdkZTE5MTVjNDg3NGEwOTdjODViMThkZjEyODMzZWViZThhN2EifQ==', 1791765763);
 
 -- --------------------------------------------------------
 
@@ -1163,6 +1263,23 @@ ALTER TABLE `job_batches`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indeks untuk tabel `man_powers`
+--
+ALTER TABLE `man_powers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `man_powers_code_unique` (`code`),
+  ADD KEY `man_powers_created_by_foreign` (`created_by`);
+
+--
+-- Indeks untuk tabel `man_power_transactions`
+--
+ALTER TABLE `man_power_transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `man_power_transactions_created_by_foreign` (`created_by`),
+  ADD KEY `man_power_transactions_cancelled_by_foreign` (`cancelled_by`),
+  ADD KEY `man_power_transactions_project_man_power_id_status_index` (`project_man_power_id`,`status`);
+
+--
 -- Indeks untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
@@ -1286,6 +1403,15 @@ ALTER TABLE `project_document_versions`
   ADD KEY `project_document_versions_uploaded_by_foreign` (`uploaded_by`);
 
 --
+-- Indeks untuk tabel `project_man_powers`
+--
+ALTER TABLE `project_man_powers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `project_man_powers_project_id_man_power_id_unique` (`project_id`,`man_power_id`),
+  ADD KEY `project_man_powers_man_power_id_foreign` (`man_power_id`),
+  ADD KEY `project_man_powers_created_by_foreign` (`created_by`);
+
+--
 -- Indeks untuk tabel `project_terms`
 --
 ALTER TABLE `project_terms`
@@ -1322,19 +1448,19 @@ ALTER TABLE `assets`
 -- AUTO_INCREMENT untuk tabel `boqs`
 --
 ALTER TABLE `boqs`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `boqs_cogs`
 --
 ALTER TABLE `boqs_cogs`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT untuk tabel `boq_items`
 --
 ALTER TABLE `boq_items`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT untuk tabel `boq_revisions`
@@ -1379,10 +1505,22 @@ ALTER TABLE `jobs`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT untuk tabel `man_powers`
+--
+ALTER TABLE `man_powers`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `man_power_transactions`
+--
+ALTER TABLE `man_power_transactions`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT untuk tabel `payments`
@@ -1457,10 +1595,16 @@ ALTER TABLE `project_document_versions`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT untuk tabel `project_man_powers`
+--
+ALTER TABLE `project_man_powers`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT untuk tabel `project_terms`
 --
 ALTER TABLE `project_terms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
@@ -1533,6 +1677,20 @@ ALTER TABLE `client_payments`
   ADD CONSTRAINT `client_payments_cancelled_by_foreign` FOREIGN KEY (`cancelled_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
   ADD CONSTRAINT `client_payments_client_billing_id_foreign` FOREIGN KEY (`client_billing_id`) REFERENCES `client_billings` (`id`) ON DELETE RESTRICT,
   ADD CONSTRAINT `client_payments_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT;
+
+--
+-- Ketidakleluasaan untuk tabel `man_powers`
+--
+ALTER TABLE `man_powers`
+  ADD CONSTRAINT `man_powers_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT;
+
+--
+-- Ketidakleluasaan untuk tabel `man_power_transactions`
+--
+ALTER TABLE `man_power_transactions`
+  ADD CONSTRAINT `man_power_transactions_cancelled_by_foreign` FOREIGN KEY (`cancelled_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
+  ADD CONSTRAINT `man_power_transactions_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
+  ADD CONSTRAINT `man_power_transactions_project_man_power_id_foreign` FOREIGN KEY (`project_man_power_id`) REFERENCES `project_man_powers` (`id`) ON DELETE RESTRICT;
 
 --
 -- Ketidakleluasaan untuk tabel `payments`
@@ -1626,6 +1784,14 @@ ALTER TABLE `project_document_status_histories`
 ALTER TABLE `project_document_versions`
   ADD CONSTRAINT `project_document_versions_project_document_id_foreign` FOREIGN KEY (`project_document_id`) REFERENCES `project_documents` (`id`) ON DELETE RESTRICT,
   ADD CONSTRAINT `project_document_versions_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT;
+
+--
+-- Ketidakleluasaan untuk tabel `project_man_powers`
+--
+ALTER TABLE `project_man_powers`
+  ADD CONSTRAINT `project_man_powers_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT,
+  ADD CONSTRAINT `project_man_powers_man_power_id_foreign` FOREIGN KEY (`man_power_id`) REFERENCES `man_powers` (`id`) ON DELETE RESTRICT,
+  ADD CONSTRAINT `project_man_powers_project_id_foreign` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE RESTRICT;
 
 --
 -- Ketidakleluasaan untuk tabel `project_terms`

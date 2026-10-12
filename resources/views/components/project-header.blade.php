@@ -55,6 +55,12 @@
            class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'assets' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
             Assets
         </a>
+        @can('viewForProject', [\App\Models\ProjectManPower::class, $project])
+            <a href="{{ route('projects.man-power.index', $project) }}"
+               class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'man-power' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
+                Man Power
+            </a>
+        @endcan
         @can('viewForProject', [\App\Models\ProcurementRequest::class, $project])
             <a href="{{ route('projects.procurement.index', $project) }}"
                class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'procurement' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
