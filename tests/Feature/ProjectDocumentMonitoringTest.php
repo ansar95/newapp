@@ -85,8 +85,10 @@ class ProjectDocumentMonitoringTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('project-documents.show', $document))
             ->assertOk()
-            ->assertSee('Document Timeline')
-            ->assertSeeInOrder(['Upload V2', 'Perbaiki nilai.', 'Upload V1']);
+            ->assertSee('Berkas')
+            ->assertSeeInOrder(['v2.pdf', 'Nilai diperbaiki.', 'Invoice V1.pdf'])
+            ->assertDontSee('Document Timeline')
+            ->assertDontSee('Submit ke Client');
     }
 
     public function test_age_and_status_durations_are_calculated_from_history(): void
@@ -147,13 +149,13 @@ class ProjectDocumentMonitoringTest extends TestCase
         $this->actingAs($this->admin)
             ->get(route('projects.documents.index', $this->project))
             ->assertOk()
-            ->assertSee('Monitoring Dokumen')
-            ->assertSee('Pantau seluruh dokumen project dan status review client.')
-            ->assertSee('+ Upload Document')
-            ->assertSeeInOrder(['Document', 'Type / Reference', 'Version', 'Status', 'Submitted Date', 'Last Update', 'Age / Waiting', 'Action'])
-            ->assertSee('Waiting Admin')
-            ->assertSee('Waiting Client')
-            ->assertSee('Completed');
+            ->assertSee('Arsip Dokumen')
+            ->assertSee('Simpan berkas project. Tidak ada proses approval atau revisi.')
+            ->assertSee('+ Unggah Dokumen')
+            ->assertSeeInOrder(['Dokumen', 'Jenis / Referensi', 'Berkas', 'Diunggah', 'Aksi'])
+            ->assertDontSee('Waiting Admin')
+            ->assertDontSee('Waiting Client')
+            ->assertDontSee('Submit ke Client');
     }
 
     public function test_dokumen_tab_sits_between_penagihan_and_payment(): void
@@ -183,12 +185,13 @@ class ProjectDocumentMonitoringTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->get(route('projects.show', $this->project))
             ->assertOk()
-            ->assertSee('Document Status')
-            ->assertSee('1 dokumen membutuhkan revisi.')
-            ->assertSee('Review Documents');
+            ->assertSee('Arsip Dokumen')
+            ->assertSee('berkas tersimpan')
+            ->assertDontSee('1 dokumen membutuhkan revisi.')
+            ->assertDontSee('Review Documents');
 
         $nextAction = ProjectDetailContext::for($this->project, $this->admin)->nextAction;
-        $response->assertSeeInOrder(['Next Action', $nextAction['message'], 'Review Documents'], false);
+        $response->assertSeeInOrder(['Next Action', $nextAction['message']], false);
     }
 
     public function test_document_permissions_follow_roles(): void
@@ -198,7 +201,7 @@ class ProjectDocumentMonitoringTest extends TestCase
         $this->actingAs($this->makeApprover())
             ->get(route('projects.documents.index', $this->project))
             ->assertOk()
-            ->assertDontSee('+ Upload Document');
+            ->assertDontSee('+ Unggah Dokumen');
 
         $this->actingAs($this->makeApprover())
             ->post(route('project-documents.submit', $document))

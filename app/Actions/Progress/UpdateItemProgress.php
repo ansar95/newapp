@@ -2,6 +2,7 @@
 
 namespace App\Actions\Progress;
 
+use App\Actions\SCurve\RecordProgressSnapshot;
 use App\Enums\BoqStatus;
 use App\Enums\ProjectStatus;
 use App\Exceptions\BusinessRuleException;
@@ -62,5 +63,7 @@ class UpdateItemProgress
             $project->status = ProjectStatus::Completed;
             $project->save();
         }
+
+        (new RecordProgressSnapshot)->handle($project);
     }
 }

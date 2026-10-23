@@ -100,7 +100,7 @@ class ProjectReport
      *     procurement: array{paid: array<string, float>, waiting: int}|null,
      *     billing: array{billed: float, received: float, outstanding: float, billed_percentage: float}|null,
      *     assets: array{in_use: int}|null,
-     *     documents: array{total: int, waiting: int, approved: int}|null
+     *     documents: array{total: int}|null
      * }
      */
     public function summary(): array
@@ -438,8 +438,6 @@ class ProjectReport
 
         if ($summary['documents'] !== null) {
             $rows[] = ['Dokumen', $summary['documents']['total']];
-            $rows[] = ['Dokumen Menunggu', $summary['documents']['waiting']];
-            $rows[] = ['Dokumen Approved', $summary['documents']['approved']];
         }
 
         return [
@@ -610,18 +608,19 @@ class ProjectReport
         $monitor = $this->documents();
 
         return [
-            'headers' => ['document_number', 'title', 'type', 'reference', 'status', 'version', 'status_since', 'revision_count', 'cycle_duration'],
-            'rows' => $monitor->documents->map(fn (ProjectDocument $document) => [
-                $document->document_number,
-                $document->document_title,
-                $document->documentType?->name,
-                $document->referenceLabel(),
-                $document->current_status->label(),
-                $document->current_version,
-                $document->statusSince()?->format('Y-m-d H:i'),
-                $document->revisionCount(),
-                ProjectDocumentMonitor::formatDuration(ProjectDocumentMonitor::cycleSeconds($document, $monitor->now)),
-            ])->all(),
+            'headers' => ['document_number', 'title', 'type', 'reference', 'filename', 'uploaded_at'],
+            'rows' => $monitor->documents->map(function (ProjectDocument $document) {
+                $version = $document->activeVersion();
+
+                return [
+                    $document->document_number,
+                    $document->document_title,
+                    $document->typeName(),
+                    $document->referenceLabel(),
+                    $version?->original_filename,
+                    ($version?->uploaded_at ?? $document->created_at)?->format('Y-m-d H:i'),
+                ];
+            })->all(),
         ];
     }
 
@@ -676,16 +675,12 @@ class ProjectReport
     }
 
     /**
-     * @return array{total: int, waiting: int, approved: int}
+     * @return array{total: int}
      */
     private function documentTotals(): array
     {
-        $documents = $this->documents();
-
         return [
-            'total' => $documents->total(),
-            'waiting' => $documents->waitingClientCount() + $documents->waitingAdminCount(),
-            'approved' => $documents->approvedCount(),
+            'total' => $this->documents()->total(),
         ];
     }
 

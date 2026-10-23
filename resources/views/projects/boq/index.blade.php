@@ -149,11 +149,11 @@
             </div>
             <div class="rounded-lg border border-maroon-200 bg-white p-3">
                 <p class="text-maroon-700">Submitted</p>
-                <p class="font-semibold"><x-date-display :value="$boq->submitted_at" format="d M Y H:i" /></p>
+                <p class="font-semibold"><x-date-display :value="$boq->submitted_at" format="d/m/Y H:i" /></p>
             </div>
             <div class="rounded-lg border border-maroon-200 bg-white p-3">
                 <p class="text-maroon-700">Reviewed</p>
-                <p class="font-semibold"><x-date-display :value="$boq->reviewed_at" format="d M Y H:i" /></p>
+                <p class="font-semibold"><x-date-display :value="$boq->reviewed_at" format="d/m/Y H:i" /></p>
             </div>
             <div class="rounded-lg border border-maroon-200 bg-white p-3">
                 <p class="text-maroon-700">Revision</p>

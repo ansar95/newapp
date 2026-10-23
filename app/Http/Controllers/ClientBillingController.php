@@ -70,7 +70,6 @@ class ClientBillingController extends Controller
             'documentMonitor' => $request->user()->can('viewForProject', [ProjectDocument::class, $clientBilling->project])
                 ? ProjectDocumentMonitor::forBilling($clientBilling)
                 : null,
-            'canCreateDocument' => $request->user()->can('create', [ProjectDocument::class, $clientBilling->project]),
         ]);
     }
 

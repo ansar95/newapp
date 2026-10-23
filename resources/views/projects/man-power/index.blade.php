@@ -93,7 +93,7 @@
                     </div>
                     <div>
                         <x-input-label value="Tanggal Mulai" />
-                        <input type="date" name="start_date" value="{{ old('start_date') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                        <x-date-input name="start_date" :value="old('start_date')" class="mt-1 w-full text-sm" />
                         <x-input-error :messages="$errors->get('start_date')" class="mt-1" />
                     </div>
                     <div>
@@ -183,7 +183,7 @@
                                         </div>
                                         <div>
                                             <x-input-label value="Tanggal *" />
-                                            <input type="date" name="transaction_date" value="{{ now()->toDateString() }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
+                                            <x-date-input name="transaction_date" :value="now()->toDateString()" class="mt-1 w-full text-sm" required />
                                         </div>
                                         <div>
                                             <x-input-label value="Nominal (Rp) *" />
@@ -222,7 +222,7 @@
                                         </div>
                                         <div>
                                             <x-input-label value="Tanggal Mulai" />
-                                            <input type="date" name="start_date" value="{{ $member->start_date?->toDateString() }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                                            <x-date-input name="start_date" :value="$member->start_date?->toDateString()" class="mt-1 w-full text-sm" />
                                         </div>
                                         <div>
                                             <x-input-label value="Catatan" />

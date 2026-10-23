@@ -118,7 +118,7 @@
                             </div>
                             <div>
                                 <x-input-label value="Planned Date" />
-                                <input type="date" name="planned_date" value="{{ old('planned_date') }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                                <x-date-input name="planned_date" :value="old('planned_date')" class="mt-1 w-full text-sm" />
                             </div>
                             <div>
                                 <x-input-label value="Total Terpilih" />

@@ -118,7 +118,7 @@
                 </div>
                 <div>
                     <x-input-label for="request_date" value="Tanggal Surat *" />
-                    <x-text-input id="request_date" name="request_date" type="date" class="mt-1 block w-full"
+                    <x-date-input id="request_date" name="request_date" class="mt-1 block w-full"
                                   :value="old('request_date', $asset?->request_date?->format('Y-m-d'))"
                                   x-bind:required="source === '{{ \App\Enums\AssetSourceType::Purchase->value }}'" />
                     <x-input-error :messages="$errors->get('request_date')" class="mt-1" />

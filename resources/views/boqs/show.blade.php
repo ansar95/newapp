@@ -60,7 +60,7 @@
                 @endcan
             @endif
         </div>
-        <p class="mt-2 text-xs text-maroon-700">File Excel (.xlsx) atau CSV (pemisah koma/titik koma) dengan kolom: cogs_name, cogs_description, item_name, item_description, quantity, unit, material_price, service_price, item_notes (keterangan, opsional). Kode COGS dan kode item dibuat otomatis (ITEM-001, ITEM-002, … per COGS). Kolom item_code dari file Export tetap dibaca agar item yang sudah ada tidak terduplikasi. File lama dengan kolom unit_price tetap diterima sebagai harga material; kolom item_category diabaikan.</p>
+        <p class="mt-2 text-xs text-maroon-700">File Excel (.xlsx) atau CSV (pemisah koma/titik koma) dengan kolom: cogs_name, cogs_description, item_name, item_description, quantity, unit, material_price, service_price, level_2, level_3 (keterangan, opsional). Kode COGS dan kode item dibuat otomatis (ITEM-001, ITEM-002, … per COGS). Kolom item_code dari file Export tetap dibaca agar item yang sudah ada tidak terduplikasi. File lama dengan kolom unit_price tetap diterima sebagai harga material; kolom item_notes dibaca sebagai Level 2. Kolom item_category diabaikan.</p>
     </div>
 
     <div class="mb-6 flex flex-wrap gap-2"
@@ -161,7 +161,8 @@
                     <thead class="bg-maroon-50 text-left text-xs uppercase text-maroon-700">
                     <tr>
                         <th class="px-3 py-2">Item</th>
-                        <th class="px-3 py-2">Keterangan</th>
+                        <th class="px-3 py-2">Level 2</th>
+                        <th class="px-3 py-2">Level 3</th>
                         <th class="px-3 py-2">Qty</th>
                         <th class="px-3 py-2">Unit</th>
                         <th class="px-3 py-2">Harga Satuan</th>
@@ -190,6 +191,7 @@
                                 <div class="text-xs text-maroon-700">{{ $item->code }}</div>
                             </td>
                             <td class="min-w-[10rem] max-w-xs px-3 py-2 text-maroon-800">{{ $item->notes ?? '-' }}</td>
+                            <td class="min-w-[10rem] max-w-xs px-3 py-2 text-maroon-800">{{ $item->level_3 ?? '-' }}</td>
                             <td class="px-3 py-2">{{ number_format((float) $item->quantity, 2) }}</td>
                             <td class="px-3 py-2">{{ $item->unit }}</td>
                             <td class="px-3 py-2 whitespace-nowrap">
@@ -244,8 +246,12 @@
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <x-input-label value="Keterangan" />
+                                                    <x-input-label value="Level 2" />
                                                     <input type="text" name="notes" maxlength="255" value="{{ $item->notes }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                                                </div>
+                                                <div>
+                                                    <x-input-label value="Level 3" />
+                                                    <input type="text" name="level_3" maxlength="255" value="{{ $item->level_3 }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
                                                 </div>
                                                 <button class="rounded-md bg-maroon-800 px-3 py-1.5 text-xs text-white disabled:opacity-60" :disabled="submitting"
                                                         x-text="submitting ? 'Processing...' : 'Update'">Update</button>
@@ -313,11 +319,17 @@
                             <x-input-label value="Harga Jasa *" />
                             <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', 0) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                         </div>
-                        <div class="sm:col-span-7">
-                            <x-input-label value="Keterangan" />
-                            <input type="text" name="notes" maxlength="255" value="{{ old('notes') }}" placeholder="Opsional, contoh: termasuk aksesoris / merk tertentu"
+                        <div class="sm:col-span-4">
+                            <x-input-label value="Level 2" />
+                            <input type="text" name="notes" maxlength="255" value="{{ old('notes') }}" placeholder="Opsional"
                                    class="mt-1 w-full rounded-md border-maroon-300 text-sm">
                             <x-input-error :messages="$errors->get('notes')" class="mt-1" />
+                        </div>
+                        <div class="sm:col-span-3">
+                            <x-input-label value="Level 3" />
+                            <input type="text" name="level_3" maxlength="255" value="{{ old('level_3') }}" placeholder="Opsional"
+                                   class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                            <x-input-error :messages="$errors->get('level_3')" class="mt-1" />
                         </div>
                         <div class="flex items-end">
                             <button class="w-full rounded-md bg-maroon-700 px-3 py-2 text-xs text-white disabled:opacity-60" :disabled="submitting">Add</button>

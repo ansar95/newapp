@@ -44,7 +44,7 @@ class ProjectDocumentMonitor
         return $query
             ->with([
                 'documentType',
-                'versions',
+                'versions.uploader',
                 'histories',
                 'reference' => fn (MorphTo $morph) => $morph->morphWith([ClientBilling::class => ['term']]),
             ])

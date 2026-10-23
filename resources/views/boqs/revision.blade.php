@@ -61,7 +61,10 @@
                     </div>
                     <p class="text-sm text-maroon-700">COGS: {{ $item?->cogs?->name }} · {{ $item?->code }}</p>
                     @if ($item?->notes)
-                        <p class="text-sm text-maroon-700">Keterangan: {{ $item->notes }}</p>
+                        <p class="text-sm text-maroon-700">Level 2: {{ $item->notes }}</p>
+                    @endif
+                    @if ($item?->level_3)
+                        <p class="text-sm text-maroon-700">Level 3: {{ $item->level_3 }}</p>
                     @endif
                     <p class="mt-2 text-sm"><span class="font-medium">Reason:</span> {{ $revisionItem->reason }}</p>
 
@@ -86,9 +89,13 @@
                                     <x-input-label value="Harga Jasa *" />
                                     <input type="number" step="0.01" min="0" name="service_unit_price" value="{{ old('service_unit_price', $item->service_unit_price) }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm" required>
                                 </div>
-                                <div class="sm:col-span-4">
-                                    <x-input-label value="Keterangan" />
+                                <div class="sm:col-span-2">
+                                    <x-input-label value="Level 2" />
                                     <input type="text" name="notes" maxlength="255" value="{{ $item->notes }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <x-input-label value="Level 3" />
+                                    <input type="text" name="level_3" maxlength="255" value="{{ $item->level_3 }}" class="mt-1 w-full rounded-md border-maroon-300 text-sm">
                                 </div>
                                 <div class="flex items-end">
                                     <button class="w-full rounded-md bg-maroon-800 px-3 py-2 text-sm text-white disabled:opacity-60" :disabled="submitting"

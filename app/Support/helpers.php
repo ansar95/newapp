@@ -17,7 +17,7 @@ if (! function_exists('percent_format')) {
 }
 
 if (! function_exists('date_id')) {
-    function date_id(DateTimeInterface|string|null $value, string $format = 'd F Y'): string
+    function date_id(DateTimeInterface|string|null $value, string $format = 'd/m/Y'): string
     {
         return Format::date($value, $format);
     }

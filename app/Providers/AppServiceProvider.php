@@ -7,9 +7,11 @@ use App\Models\BoqItem;
 use App\Models\BoqRevision;
 use App\Models\ClientBilling;
 use App\Models\Project;
+use App\Models\SCurveBaseline;
 use App\Models\User;
 use App\Policies\ProgressPolicy;
 use App\Policies\RevisionPolicy;
+use App\Policies\SCurvePolicy;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(BoqRevision::class, RevisionPolicy::class);
+        Gate::policy(SCurveBaseline::class, SCurvePolicy::class);
 
         Relation::morphMap([
             DocumentReferenceType::Billing->value => ClientBilling::class,

@@ -190,4 +190,24 @@ class ProjectWorkflowTest extends TestCase
 
         $this->assertSame(ProjectStatus::Completed, $completed->status);
     }
+
+    public function test_project_dates_are_entered_as_day_month_year(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->makeActiveProject($actor, [
+            'code' => 'PRJ-DATE',
+            'start_date' => '2026-09-12',
+            'target_end_date' => '2026-12-26',
+        ]);
+
+        $this->actingAs($actor)
+            ->get(route('projects.edit', $project))
+            ->assertOk()
+            ->assertSee('placeholder="dd/mm/yyyy"', false)
+            ->assertSee('value="12/09/2026"', false)
+            ->assertSee('value="26/12/2026"', false)
+            ->assertSee('12/09/2026')
+            ->assertDontSee('mm/dd/yyyy', false)
+            ->assertDontSee('type="date" name="start_date"', false);
+    }
 }

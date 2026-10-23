@@ -100,4 +100,53 @@
             @endforelse
         </div>
     </div>
+
+    <div class="mt-6 rounded-2xl border border-maroon-200/80 bg-white p-5 shadow-sm shadow-maroon-100/40">
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <h2 class="text-base font-semibold text-maroon-950">Kurva S</h2>
+                <p class="mt-1 text-sm text-maroon-700">Satu proyek pada satu waktu. Rencana, rebaseline, dan progress fisik tidak digabung antarproyek.</p>
+            </div>
+            <a href="{{ route('s-curve.index', $sCurveProject ? ['project' => $sCurveProject->id] : []) }}"
+               class="text-sm font-medium text-maroon-700 hover:underline">Buka menu Kurva S</a>
+        </div>
+        <form method="GET" action="{{ route('dashboard') }}" class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div class="min-w-0 flex-1">
+                <label for="dashboard-kurva" class="text-sm font-medium text-maroon-800">Proyek</label>
+                <select id="dashboard-kurva" name="kurva" class="mt-1 block w-full rounded-md border-maroon-300 text-sm text-maroon-950 shadow-sm focus:border-maroon-600 focus:ring-maroon-600">
+                    <option value="">Pilih proyek</option>
+                    @foreach ($sCurveProjects as $project)
+                        <option value="{{ $project->id }}" @selected($sCurveProject?->id === $project->id)>{{ $project->code }} — {{ $project->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-maroon-800 px-4 py-2 text-sm font-medium text-white hover:bg-maroon-900">Tampilkan</button>
+        </form>
+        @if ($sCurveSeries)
+            <div class="mb-4 grid gap-3 sm:grid-cols-4">
+                <div class="rounded-lg bg-maroon-50 px-3 py-2">
+                    <p class="text-xs font-medium text-maroon-700">Rencana awal</p>
+                    <p class="text-lg font-semibold text-maroon-950">{{ $sCurveSeries['summary']['p0'] === null ? '—' : percent_format($sCurveSeries['summary']['p0'], 2) }}</p>
+                </div>
+                <div class="rounded-lg bg-maroon-50 px-3 py-2">
+                    <p class="text-xs font-medium text-maroon-700">Rebaseline</p>
+                    <p class="text-lg font-semibold text-maroon-950">{{ $sCurveSeries['summary']['p1'] === null ? '—' : percent_format($sCurveSeries['summary']['p1'], 2) }}</p>
+                </div>
+                <div class="rounded-lg bg-maroon-50 px-3 py-2">
+                    <p class="text-xs font-medium text-maroon-700">Aktual</p>
+                    <p class="text-lg font-semibold text-maroon-950">{{ $sCurveSeries['summary']['actual'] === null ? '—' : percent_format($sCurveSeries['summary']['actual'], 2) }}</p>
+                </div>
+                <div class="rounded-lg bg-maroon-50 px-3 py-2">
+                    <p class="text-xs font-medium text-maroon-700">Deviasi</p>
+                    <p class="text-lg font-semibold text-maroon-950">{{ $sCurveSeries['summary']['deviation'] === null ? '—' : (($sCurveSeries['summary']['deviation'] > 0 ? '+' : '').percent_format($sCurveSeries['summary']['deviation'], 2)) }}</p>
+                </div>
+            </div>
+            @if ($sCurveSeries['summary']['history_note'])
+                <p class="mb-3 text-xs text-maroon-700">{{ $sCurveSeries['summary']['history_note'] }}</p>
+            @endif
+            <x-s-curve-chart :points="$sCurveSeries['points']" />
+        @else
+            <p class="text-sm text-maroon-700">Pilih proyek untuk melihat kurva, atau buka menu Kurva S untuk mengisi rencana.</p>
+        @endif
+    </div>
 </x-app-layout>

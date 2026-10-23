@@ -41,8 +41,12 @@
                 Dashboard
             </a>
             <a href="{{ route('projects.index') }}"
-               class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('projects.*') || (request()->routeIs('boqs.*') && ! request()->routeIs('boqs.approvals', 'boqs.review')) || request()->routeIs('payment*') || request()->routeIs('progress.*') || request()->routeIs('procurement-requests.*')) }}">
+               class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass((request()->routeIs('projects.*') && ! request()->routeIs('projects.s-curve.*')) || (request()->routeIs('boqs.*') && ! request()->routeIs('boqs.approvals', 'boqs.review')) || request()->routeIs('payment*') || request()->routeIs('progress.*') || request()->routeIs('procurement-requests.*')) }}">
                 Projects
+            </a>
+            <a href="{{ route('s-curve.index') }}"
+               class="flex items-center rounded-lg px-3 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white {{ $navClass(request()->routeIs('s-curve.*') || request()->routeIs('projects.s-curve.*')) }}">
+                Kurva S
             </a>
             @if (Auth::user()->hasPermission(\App\Enums\Permission::BoqReview))
                 @php

@@ -27,6 +27,7 @@ use App\Http\Controllers\ProjectReportController;
 use App\Http\Controllers\ProjectTermController;
 use App\Http\Controllers\ProjectTransferController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SCurveController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,8 @@ Route::redirect('/', '/login');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/kurva-s', [SCurveController::class, 'index'])->name('s-curve.index');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/projects', [ReportController::class, 'projects'])->name('reports.projects');
@@ -181,6 +184,13 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/projects/{project}/progress', [ProgressController::class, 'index'])->name('projects.progress.index');
     Route::patch('/boq-items/{item}/progress', [ProgressController::class, 'update'])->name('progress.update');
+
+    Route::get('/projects/{project}/kurva-s', [SCurveController::class, 'show'])->name('projects.s-curve.show');
+    Route::post('/projects/{project}/kurva-s/baselines', [SCurveController::class, 'store'])->name('projects.s-curve.baselines.store');
+    Route::post('/projects/{project}/kurva-s/rencana', [SCurveController::class, 'storePlan'])->name('projects.s-curve.plan.store');
+    Route::put('/s-curve-baselines/{baseline}', [SCurveController::class, 'update'])->name('s-curve-baselines.update');
+    Route::post('/s-curve-baselines/{baseline}/import', [SCurveController::class, 'import'])->name('s-curve-baselines.import');
+    Route::get('/s-curve-baselines/{baseline}/template', [SCurveController::class, 'template'])->name('s-curve-baselines.template');
 
     Route::get('/projects/{project}/reports', [ProjectReportController::class, 'index'])->name('projects.reports.index');
     Route::get('/projects/{project}/reports/export', [ProjectReportController::class, 'export'])->name('projects.reports.export');

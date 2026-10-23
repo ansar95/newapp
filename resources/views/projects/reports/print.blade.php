@@ -34,7 +34,7 @@
             <div><dt class="inline text-maroon-700">Client:</dt> <dd class="inline font-medium">{{ $project->client_name }}</dd></div>
             <div><dt class="inline text-maroon-700">Nomor Kontrak:</dt> <dd class="inline font-medium">{{ $project->contract_number ?? '-' }}</dd></div>
             <div><dt class="inline text-maroon-700">Periode Transaksi:</dt> <dd class="inline font-medium">{{ $report->periodLabel() }}</dd></div>
-            <div><dt class="inline text-maroon-700">Dicetak:</dt> <dd class="inline font-medium">{{ date_id(now(), 'd F Y H:i') }} oleh {{ $report->viewer->name }}</dd></div>
+            <div><dt class="inline text-maroon-700">Dicetak:</dt> <dd class="inline font-medium">{{ date_id(now(), 'd/m/Y H:i') }} oleh {{ $report->viewer->name }}</dd></div>
         </dl>
     </header>
 

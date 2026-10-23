@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 #[Fillable([
     'project_id',
     'document_type_id',
+    'type_label',
     'reference_type',
     'reference_id',
     'document_number',
@@ -75,6 +76,15 @@ class ProjectDocument extends Model
     public function documentType(): BelongsTo
     {
         return $this->belongsTo(DocumentType::class);
+    }
+
+    public function typeName(): string
+    {
+        if (filled($this->type_label)) {
+            return $this->type_label;
+        }
+
+        return $this->documentType?->name ?? '-';
     }
 
     public function reference(): MorphTo

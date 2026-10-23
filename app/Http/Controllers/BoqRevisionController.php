@@ -62,6 +62,7 @@ class BoqRevisionController extends Controller
             'name',
             'description',
             'notes',
+            'level_3',
             'quantity',
             'unit',
             'material_unit_price',

@@ -116,13 +116,13 @@
                     </div>
                     <div>
                         <x-input-label for="invoice_date" value="Tanggal Invoice *" />
-                        <x-text-input id="invoice_date" type="date" name="invoice_date" class="mt-1 block w-full text-sm" required
+                        <x-date-input id="invoice_date" name="invoice_date" class="mt-1 block w-full text-sm" required
                                       :value="old('invoice_date', now()->format('Y-m-d'))" />
                         <x-input-error :messages="$errors->get('invoice_date')" class="mt-1" />
                     </div>
                     <div>
                         <x-input-label for="send_due_date" value="Jatuh Tempo" />
-                        <x-text-input id="send_due_date" type="date" name="due_date" class="mt-1 block w-full text-sm"
+                        <x-date-input id="send_due_date" name="due_date" class="mt-1 block w-full text-sm"
                                       :value="old('due_date', $billing->due_date?->format('Y-m-d'))" />
                         <x-input-error :messages="$errors->get('due_date')" class="mt-1" />
                     </div>
@@ -159,20 +159,10 @@
     </div>
 
     @if ($documentMonitor)
-        @php
-            $canCreateDocument = $canCreateDocument && ! $billing->isCancelled()
-                && $documentMonitor->activeDocuments()->isEmpty();
-        @endphp
         <div class="mb-6 overflow-hidden rounded-xl border border-maroon-200 bg-white shadow-sm">
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-maroon-100 px-4 py-3">
-                <div>
-                    <h3 class="text-base font-semibold text-maroon-950">Dokumen</h3>
-                    <p class="text-xs text-maroon-700">Status dokumen terpisah dari status penagihan. Dokumen APPROVED tidak membuat penagihan PAID.</p>
-                </div>
-                @if ($canCreateDocument)
-                    <a href="{{ route('project-documents.create', [$project, 'billing' => $billing->id]) }}"
-                       class="inline-flex items-center justify-center rounded-md bg-maroon-800 px-4 py-2 text-sm font-medium text-white hover:bg-maroon-900">+ Upload Document</a>
-                @endif
+            <div class="border-b border-maroon-100 px-4 py-3">
+                <h3 class="text-base font-semibold text-maroon-950">Dokumen</h3>
+                <p class="text-xs text-maroon-700">Berkas yang sudah terhubung ke penagihan ini. Unggahan baru disimpan di arsip dokumen project.</p>
             </div>
             @include('project-documents._table', ['documents' => $documentMonitor->documents, 'now' => $documentMonitor->now, 'showReference' => false])
         </div>
@@ -202,7 +192,7 @@
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
                             <x-input-label for="payment_date" value="Tanggal Pembayaran *" />
-                            <x-text-input id="payment_date" type="date" name="payment_date" class="mt-1 block w-full text-sm" required
+                            <x-date-input id="payment_date" name="payment_date" class="mt-1 block w-full text-sm" required
                                           :value="old('payment_date', now()->format('Y-m-d'))" />
                             <x-input-error :messages="$errors->get('payment_date')" class="mt-1" />
                         </div>

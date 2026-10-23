@@ -38,7 +38,7 @@
         </div>
         <div>
             <x-input-label for="request_date" value="Tanggal Permintaan *" />
-            <x-text-input id="request_date" type="date" name="request_date" class="mt-1 block w-full text-sm" required
+            <x-date-input id="request_date" name="request_date" class="mt-1 block w-full text-sm" required
                           :value="old('request_date', $procurementRequest?->request_date?->format('Y-m-d') ?? now()->format('Y-m-d'))" />
             <x-input-error :messages="$errors->get('request_date')" class="mt-1" />
         </div>
@@ -146,13 +146,13 @@
                         @if ($isRental)
                             <div class="sm:col-span-3">
                                 <label class="block text-xs font-semibold text-maroon-800" :for="`rental_start_${index}`">Mulai Sewa *</label>
-                                <input type="date" :id="`rental_start_${index}`" :name="`items[${index}][rental_start]`" x-model="item.rental_start" required
-                                       class="mt-1 block w-full rounded-md border-maroon-300 text-sm shadow-sm focus:border-maroon-600 focus:ring-maroon-600">
+                                <x-date-input x-bind:id="`rental_start_${index}`" x-bind:name="`items[${index}][rental_start]`" x-model="item.rental_start" required
+                                              class="mt-1 block w-full text-sm" />
                             </div>
                             <div class="sm:col-span-3">
                                 <label class="block text-xs font-semibold text-maroon-800" :for="`rental_end_${index}`">Selesai Sewa *</label>
-                                <input type="date" :id="`rental_end_${index}`" :name="`items[${index}][rental_end]`" x-model="item.rental_end" required :min="item.rental_start"
-                                       class="mt-1 block w-full rounded-md border-maroon-300 text-sm shadow-sm focus:border-maroon-600 focus:ring-maroon-600">
+                                <x-date-input x-bind:id="`rental_end_${index}`" x-bind:name="`items[${index}][rental_end]`" x-model="item.rental_end" required x-bind:min="item.rental_start"
+                                              class="mt-1 block w-full text-sm" />
                             </div>
                         @endif
 

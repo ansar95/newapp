@@ -43,7 +43,7 @@
             <div class="grid gap-4 sm:grid-cols-3">
                 <div>
                     <x-input-label for="payment_date" value="Tanggal Bayar *" />
-                    <x-text-input id="payment_date" type="date" name="payment_date" class="mt-1 block w-full text-sm" required
+                    <x-date-input id="payment_date" name="payment_date" class="mt-1 block w-full text-sm" required
                                   :value="old('payment_date', now()->format('Y-m-d'))" />
                     <x-input-error :messages="$errors->get('payment_date')" class="mt-1" />
                 </div>

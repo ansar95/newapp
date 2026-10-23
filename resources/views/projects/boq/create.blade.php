@@ -71,7 +71,8 @@
                             <th class="px-2 py-2">Unit</th>
                             <th class="px-2 py-2">Harga Material</th>
                             <th class="px-2 py-2">Harga Jasa</th>
-                            <th class="px-2 py-2">Keterangan</th>
+                            <th class="px-2 py-2">Level 2</th>
+                            <th class="px-2 py-2">Level 3</th>
                             <th class="px-2 py-2">Total</th>
                             <th class="px-2 py-2"></th>
                         </tr>
@@ -86,6 +87,7 @@
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][material_unit_price]`" x-model.number="item.material_unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="number" step="0.01" min="0" :name="`cogs[${ci}][items][${ii}][service_unit_price]`" x-model.number="item.service_unit_price" class="w-32 rounded-md border-maroon-300 text-sm" required></td>
                                 <td class="px-2 py-2"><input type="text" maxlength="255" :name="`cogs[${ci}][items][${ii}][notes]`" x-model="item.notes" placeholder="Opsional" class="w-48 rounded-md border-maroon-300 text-sm"></td>
+                                <td class="px-2 py-2"><input type="text" maxlength="255" :name="`cogs[${ci}][items][${ii}][level_3]`" x-model="item.level_3" placeholder="Opsional" class="w-48 rounded-md border-maroon-300 text-sm"></td>
                                 <td class="px-2 py-2 whitespace-nowrap font-medium" x-text="formatMoney(itemTotal(item))"></td>
                                 <td class="px-2 py-2">
                                     <button type="button" class="text-maroon-900 hover:underline" @click="removeItem(ci, ii)" x-show="cogs.items.length > 1">Hapus</button>
@@ -140,19 +142,19 @@
                 cogsList: [{
                     name: 'Engineering',
                     description: '',
-                    items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '' }]
+                    items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '', level_3: '' }]
                 }],
                 addCogs() {
                     this.cogsList.push({
                         name: '',
                         description: '',
-                        items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '' }]
+                        items: [{ code: 'ITEM-001', name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '', level_3: '' }]
                     });
                 },
                 removeCogs(ci) { this.cogsList.splice(ci, 1); },
                 addItem(ci) {
                     const n = String(this.cogsList[ci].items.length + 1).padStart(3, '0');
-                    this.cogsList[ci].items.push({ code: 'ITEM-' + n, name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '' });
+                    this.cogsList[ci].items.push({ code: 'ITEM-' + n, name: '', quantity: 1, unit: 'ls', material_unit_price: 0, service_unit_price: 0, notes: '', level_3: '' });
                 },
                 removeItem(ci, ii) { this.cogsList[ci].items.splice(ii, 1); },
                 itemMaterial(item) { return (Number(item.quantity) || 0) * (Number(item.material_unit_price) || 0); },
@@ -207,7 +209,8 @@
                                 unit: row.unit || 'ls',
                                 material_unit_price: Number(row.material_price || 0),
                                 service_unit_price: Number(row.service_price || 0),
-                                notes: row.item_notes || ''
+                                notes: row.level_2 || row.item_notes || '',
+                                level_3: row.level_3 || ''
                             });
                         });
 
@@ -239,7 +242,8 @@
                                 unit: String(item.unit ?? ''),
                                 material_price: String(item.material_unit_price ?? ''),
                                 service_price: String(item.service_unit_price ?? ''),
-                                item_notes: String(item.notes ?? '')
+                                level_2: String(item.notes ?? ''),
+                                level_3: String(item.level_3 ?? '')
                             });
                         });
                     });

@@ -3,12 +3,8 @@
 @endphp
 
 <div class="space-y-6">
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <x-stat-card label="Total Dokumen" :value="(string) $monitor->total()" />
-        <x-stat-card label="Menunggu Client" :value="(string) $monitor->waitingClientCount()" />
-        <x-stat-card label="Menunggu Admin" :value="(string) $monitor->waitingAdminCount()" />
-        <x-stat-card label="Approved" :value="(string) $monitor->approvedCount()" />
-        <x-stat-card label="Draft" :value="(string) $monitor->draftCount()" />
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <x-stat-card label="Total Dokumen" :value="(string) $monitor->total()" hint="Berkas yang tersimpan" />
     </div>
 
     <div class="overflow-hidden rounded-2xl border border-maroon-200 bg-white shadow-sm print:shadow-none">
@@ -23,27 +19,22 @@
                         <th class="px-4 py-2">Dokumen</th>
                         <th class="px-4 py-2">Jenis</th>
                         <th class="px-4 py-2">Referensi</th>
-                        <th class="px-4 py-2">Status</th>
-                        <th class="px-4 py-2 text-right">Versi</th>
-                        <th class="px-4 py-2 text-right">Revisi</th>
-                        <th class="px-4 py-2">Status Sejak</th>
-                        <th class="px-4 py-2">Durasi Siklus</th>
+                        <th class="px-4 py-2">Berkas</th>
+                        <th class="px-4 py-2">Diunggah</th>
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-maroon-100">
                     @foreach ($monitor->documents as $document)
+                        @php($version = $document->activeVersion())
                         <tr class="break-inside-avoid">
                             <td class="px-4 py-2">
                                 <div class="font-medium text-maroon-950">{{ $document->document_title }}</div>
                                 <div class="text-xs text-maroon-700">{{ $document->document_number }}</div>
                             </td>
-                            <td class="px-4 py-2">{{ $document->documentType?->name ?? '-' }}</td>
+                            <td class="px-4 py-2">{{ $document->typeName() }}</td>
                             <td class="px-4 py-2">{{ $document->referenceLabel() ?? '-' }}</td>
-                            <td class="px-4 py-2"><x-status-badge :status="$document->current_status" /></td>
-                            <td class="px-4 py-2 text-right">{{ $document->current_version }}</td>
-                            <td class="px-4 py-2 text-right">{{ $document->revisionCount() }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ $document->statusSince() ? date_id($document->statusSince(), 'd M Y H:i') : '-' }}</td>
-                            <td class="px-4 py-2 whitespace-nowrap">{{ \App\Support\ProjectDocumentMonitor::formatDuration(\App\Support\ProjectDocumentMonitor::cycleSeconds($document, $monitor->now)) }}</td>
+                            <td class="px-4 py-2">{{ $version?->original_filename ?? '-' }}</td>
+                            <td class="px-4 py-2 whitespace-nowrap">{{ ($version?->uploaded_at ?? $document->created_at) ? date_id($version?->uploaded_at ?? $document->created_at) : '-' }}</td>
                         </tr>
                     @endforeach
                     </tbody>

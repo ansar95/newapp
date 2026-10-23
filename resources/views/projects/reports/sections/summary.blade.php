@@ -86,9 +86,7 @@
                     <x-stat-card label="Aset Digunakan" :value="(string) $summary['assets']['in_use']" />
                 @endif
                 @if ($summary['documents'])
-                    <x-stat-card label="Dokumen" :value="(string) $summary['documents']['total']" />
-                    <x-stat-card label="Dokumen Menunggu" :value="(string) $summary['documents']['waiting']" hint="Menunggu client atau admin" />
-                    <x-stat-card label="Dokumen Approved" :value="(string) $summary['documents']['approved']" />
+                    <x-stat-card label="Dokumen" :value="(string) $summary['documents']['total']" hint="Berkas yang tersimpan" />
                 @endif
             </div>
         </div>

@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Actions\Document\ApproveProjectDocument;
+use App\Actions\Document\CreateProjectDocument;
 use App\Enums\ClientBillingStatus;
 use App\Enums\ClientPaymentStatus;
 use App\Enums\DocumentReferenceType;
 use App\Enums\ProjectDocumentStatus;
+use App\Exceptions\BusinessRuleException;
 use App\Models\ClientBilling;
 use App\Models\Project;
 use App\Models\ProjectDocument;
@@ -54,7 +56,33 @@ class ProjectDocumentReferenceTest extends TestCase
             ->assertOk()
             ->assertSee('Lampiran Internal')
             ->assertSee($document->document_title)
-            ->assertDontSee('+ Upload Document');
+            ->assertDontSee('+ Unggah Dokumen');
+    }
+
+    public function test_upload_form_stores_a_free_type_without_a_billing(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('project-documents.create', $this->project))
+            ->assertOk()
+            ->assertSee('name="type_label"', false)
+            ->assertDontSee('name="client_billing_id"', false)
+            ->assertDontSee('name="document_type_id"', false)
+            ->assertDontSee('Penagihan');
+
+        $this->actingAs($this->admin)
+            ->post(route('project-documents.store', $this->project), [
+                'type_label' => '  Berita Acara  ',
+                'document_title' => 'BA Progress',
+                'file' => $this->fakePdf(),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $document = ProjectDocument::query()->sole();
+        $this->assertSame('Berita Acara', $document->type_label);
+        $this->assertSame('Berita Acara', $document->typeName());
+        $this->assertNull($document->reference_type);
+        $this->assertNull($document->reference_id);
+        $this->assertSame(ProjectDocumentStatus::Archived, $document->current_status);
     }
 
     public function test_billing_from_another_project_cannot_be_linked(): void
@@ -63,14 +91,16 @@ class ProjectDocumentReferenceTest extends TestCase
         $otherTerm = $this->makeTerm($this->admin, $otherProject, ['percentage' => 50]);
         $otherBilling = $this->makeSentBilling($this->admin, $otherTerm, 100_000_000);
 
-        $this->actingAs($this->admin)
-            ->post(route('project-documents.store', $this->project), [
+        try {
+            app(CreateProjectDocument::class)->handle($this->admin, $this->project, [
                 'document_type_id' => $this->billingDocumentType()->id,
                 'client_billing_id' => $otherBilling->id,
                 'document_title' => 'Dokumen Penagihan',
-                'file' => $this->fakePdf(),
-            ])
-            ->assertSessionHasErrors(['business' => 'Penagihan tidak ditemukan pada project ini.']);
+            ], $this->fakePdf());
+            $this->fail('Expected BusinessRuleException was not thrown.');
+        } catch (BusinessRuleException $exception) {
+            $this->assertSame('Penagihan tidak ditemukan pada project ini.', $exception->getMessage());
+        }
 
         $this->assertSame(0, ProjectDocument::query()->count());
     }
@@ -79,14 +109,16 @@ class ProjectDocumentReferenceTest extends TestCase
     {
         $this->makeBillingDocument($this->admin, $this->billing);
 
-        $this->actingAs($this->admin)
-            ->post(route('project-documents.store', $this->project), [
+        try {
+            app(CreateProjectDocument::class)->handle($this->admin, $this->project, [
                 'document_type_id' => $this->billingDocumentType()->id,
                 'client_billing_id' => $this->billing->id,
                 'document_title' => 'Duplikat',
-                'file' => $this->fakePdf(),
-            ])
-            ->assertSessionHasErrors('business');
+            ], $this->fakePdf());
+            $this->fail('Expected BusinessRuleException was not thrown.');
+        } catch (BusinessRuleException $exception) {
+            $this->assertStringContainsString($this->billing->billing_number, $exception->getMessage());
+        }
 
         $this->assertSame(1, ProjectDocument::query()->count());
     }
@@ -127,14 +159,16 @@ class ProjectDocumentReferenceTest extends TestCase
         $draft = $this->makeDraftBilling($this->admin, $term, 50_000_000);
         $draft->forceFill(['status' => ClientBillingStatus::Cancelled])->save();
 
-        $this->actingAs($this->admin)
-            ->post(route('project-documents.store', $this->project), [
+        try {
+            app(CreateProjectDocument::class)->handle($this->admin, $this->project, [
                 'document_type_id' => $this->billingDocumentType()->id,
                 'client_billing_id' => $draft->id,
                 'document_title' => 'Dokumen',
-                'file' => $this->fakePdf(),
-            ])
-            ->assertSessionHasErrors('business');
+            ], $this->fakePdf());
+            $this->fail('Expected BusinessRuleException was not thrown.');
+        } catch (BusinessRuleException $exception) {
+            $this->assertSame('Penagihan yang dibatalkan tidak dapat dibuatkan dokumen.', $exception->getMessage());
+        }
 
         $this->assertSame(0, ProjectDocument::query()->count());
     }

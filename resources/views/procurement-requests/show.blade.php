@@ -60,7 +60,7 @@
                 <dt class="text-xs font-semibold uppercase tracking-wide text-maroon-700">Diajukan</dt>
                 <dd class="mt-1 font-medium text-maroon-950">
                     @if ($procurementRequest->submitted_at)
-                        {{ $procurementRequest->submitter?->name ?? '-' }} · <x-date-display :value="$procurementRequest->submitted_at" format="d M Y H:i" />
+                        {{ $procurementRequest->submitter?->name ?? '-' }} · <x-date-display :value="$procurementRequest->submitted_at" format="d/m/Y H:i" />
                     @else
                         -
                     @endif
@@ -70,7 +70,7 @@
                 <dt class="text-xs font-semibold uppercase tracking-wide text-maroon-700">Disetujui</dt>
                 <dd class="mt-1 font-medium text-maroon-950">
                     @if ($procurementRequest->approved_at)
-                        {{ $procurementRequest->approver?->name ?? '-' }} · <x-date-display :value="$procurementRequest->approved_at" format="d M Y H:i" />
+                        {{ $procurementRequest->approver?->name ?? '-' }} · <x-date-display :value="$procurementRequest->approved_at" format="d/m/Y H:i" />
                     @else
                         -
                     @endif

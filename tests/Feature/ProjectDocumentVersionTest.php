@@ -123,8 +123,7 @@ class ProjectDocumentVersionTest extends TestCase
     {
         $this->actingAs($this->admin)
             ->post(route('project-documents.store', $this->project), [
-                'document_type_id' => $this->billingDocumentType()->id,
-                'client_billing_id' => $this->billing->id,
+                'type_label' => 'Invoice',
                 'document_title' => 'Dokumen',
                 'file' => UploadedFile::fake()->create('invoice.docx', 100, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
             ])
@@ -132,8 +131,7 @@ class ProjectDocumentVersionTest extends TestCase
 
         $this->actingAs($this->admin)
             ->post(route('project-documents.store', $this->project), [
-                'document_type_id' => $this->billingDocumentType()->id,
-                'client_billing_id' => $this->billing->id,
+                'type_label' => 'Invoice',
                 'document_title' => 'Dokumen',
                 'file' => $this->fakePdf('besar.pdf', 10241),
             ])

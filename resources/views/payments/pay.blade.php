@@ -72,7 +72,7 @@
             </div>
             <div>
                 <x-input-label for="payment_date" value="Payment Date *" />
-                <x-text-input id="payment_date" type="date" name="payment_date" class="mt-1 block w-full" :value="old('payment_date', now()->toDateString())" required />
+                <x-date-input id="payment_date" name="payment_date" class="mt-1 block w-full" :value="old('payment_date', now()->toDateString())" required />
                 <x-input-error :messages="$errors->get('payment_date')" class="mt-1" />
             </div>
             <div>

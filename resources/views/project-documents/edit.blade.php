@@ -11,12 +11,18 @@
 
     <div class="mx-auto max-w-2xl rounded-xl border border-maroon-200 bg-white p-6 shadow-sm">
         <h2 class="text-lg font-semibold text-maroon-950">Edit Dokumen</h2>
-        <p class="mb-4 mt-1 text-sm text-maroon-700">File tidak diubah di sini. Upload versi baru dari halaman detail dokumen.</p>
+        <p class="mb-4 mt-1 text-sm text-maroon-700">Tipe, judul, dan keterangan dapat diubah. Berkas tetap tersimpan.</p>
 
         <form method="POST" action="{{ route('project-documents.update', $document) }}">
             @csrf
             @method('PUT')
             <div class="space-y-4">
+                <div>
+                    <x-input-label for="type_label" value="Tipe Dokumen *" />
+                    <x-text-input id="type_label" name="type_label" class="mt-1 block w-full text-sm" required maxlength="255"
+                                  :value="old('type_label', $document->typeName())" />
+                    <x-input-error :messages="$errors->get('type_label')" class="mt-1" />
+                </div>
                 <div>
                     <x-input-label for="document_title" value="Judul Dokumen *" />
                     <x-text-input id="document_title" name="document_title" class="mt-1 block w-full text-sm" required maxlength="255"

@@ -49,7 +49,7 @@
     <div class="grid gap-4 sm:grid-cols-2">
         <div>
             <x-input-label for="billing_date" value="Tanggal Penagihan *" />
-            <x-text-input id="billing_date" type="date" name="billing_date" class="mt-1 block w-full text-sm" required
+            <x-date-input id="billing_date" name="billing_date" class="mt-1 block w-full text-sm" required
                           :value="old('billing_date', $billing?->billing_date?->format('Y-m-d') ?? now()->format('Y-m-d'))" />
             <x-input-error :messages="$errors->get('billing_date')" class="mt-1" />
         </div>
@@ -64,7 +64,7 @@
         </div>
         <div>
             <x-input-label for="due_date" value="Jatuh Tempo" />
-            <x-text-input id="due_date" type="date" name="due_date" class="mt-1 block w-full text-sm"
+            <x-date-input id="due_date" name="due_date" class="mt-1 block w-full text-sm"
                           :value="old('due_date', $billing?->due_date?->format('Y-m-d'))" />
             <x-input-error :messages="$errors->get('due_date')" class="mt-1" />
         </div>
@@ -75,7 +75,7 @@
             @if ($billing?->attachment)
                 <p class="mt-1 text-xs text-maroon-700">Lampiran saat ini tersimpan. Unggah file baru untuk mengganti.</p>
             @endif
-            <p class="mt-1 text-xs text-maroon-700">Catatan internal. Dokumen yang direview client dikelola di Monitoring Dokumen.</p>
+            <p class="mt-1 text-xs text-maroon-700">Catatan internal. Berkas penagihan yang perlu disimpan dapat diunggah ke arsip dokumen.</p>
             <x-input-error :messages="$errors->get('attachment')" class="mt-1" />
         </div>
     </div>

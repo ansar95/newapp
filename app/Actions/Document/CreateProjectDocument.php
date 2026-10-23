@@ -22,21 +22,32 @@ class CreateProjectDocument
     public function __construct(private StoreProjectDocumentVersion $storeProjectDocumentVersion) {}
 
     /**
-     * Create a document in DRAFT with its first version (V1).
+     * Create a document with its first file. New uploads from the screen are stored as an archive.
      *
      * @param  array{
-     *     document_type_id: int|string,
+     *     type_label?: string,
+     *     document_type_id?: int|string,
      *     client_billing_id?: int|string|null,
      *     document_title: string,
      *     description?: string|null,
      *     version_notes?: string|null
      * }  $data
      */
-    public function handle(User $actor, Project $project, array $data, ?UploadedFile $file): ProjectDocument
+    public function handle(User $actor, Project $project, array $data, ?UploadedFile $file, bool $asArchive = false): ProjectDocument
     {
         ProjectDocument::assertProjectAcceptsDocuments($project);
 
-        $validated = Validator::make([...$data, 'file' => $file], [
+        if (isset($data['type_label']) && is_string($data['type_label'])) {
+            $data['type_label'] = trim($data['type_label']);
+        }
+
+        $validated = Validator::make([...$data, 'file' => $file], $asArchive ? [
+            'type_label' => ['required', 'string', 'max:255'],
+            'document_title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'version_notes' => ['nullable', 'string', 'max:2000'],
+            'file' => StoreProjectDocumentVersion::fileRules(),
+        ] : [
             'document_type_id' => ['required', 'integer'],
             'client_billing_id' => ['nullable', 'integer'],
             'document_title' => ['required', 'string', 'max:255'],
@@ -44,31 +55,41 @@ class CreateProjectDocument
             'version_notes' => ['nullable', 'string', 'max:2000'],
             'file' => StoreProjectDocumentVersion::fileRules(),
         ], [
+            'type_label.required' => 'Tipe dokumen wajib diisi.',
             'document_type_id.required' => 'Tipe dokumen wajib dipilih.',
             'document_title.required' => 'Judul dokumen wajib diisi.',
             ...StoreProjectDocumentVersion::fileMessages(),
         ])->validate();
 
-        $type = DocumentType::query()->whereKey($validated['document_type_id'])->where('is_active', true)->first();
+        if ($asArchive) {
+            $type = DocumentType::query()->where('code', DocumentType::GENERAL)->first();
+        } else {
+            $type = DocumentType::query()->whereKey($validated['document_type_id'])->where('is_active', true)->first();
+        }
 
         if ($type === null) {
             throw BusinessRuleException::make('Tipe dokumen tidak tersedia.');
         }
 
-        return DB::transaction(function () use ($actor, $project, $validated, $type, $file): ProjectDocument {
-            $billing = $type->requiresBilling()
-                ? $this->resolveBilling($project, $type, $validated['client_billing_id'] ?? null)
-                : null;
+        return DB::transaction(function () use ($actor, $project, $validated, $type, $file, $asArchive): ProjectDocument {
+            $billing = $asArchive
+                ? null
+                : ($type->requiresBilling()
+                    ? $this->resolveBilling($project, $type, $validated['client_billing_id'] ?? null)
+                    : null);
+
+            $status = $asArchive ? ProjectDocumentStatus::Archived : ProjectDocumentStatus::Draft;
 
             $document = ProjectDocument::query()->create([
                 'project_id' => $project->id,
                 'document_type_id' => $type->id,
+                'type_label' => $asArchive ? $validated['type_label'] : null,
                 'reference_type' => $billing ? DocumentReferenceType::Billing->value : null,
                 'reference_id' => $billing?->id,
                 'document_number' => ProjectDocument::nextDocumentNumber(),
                 'document_title' => $validated['document_title'],
                 'description' => $validated['description'] ?? null,
-                'current_status' => ProjectDocumentStatus::Draft,
+                'current_status' => $status,
                 'current_version' => 0,
                 'created_by' => $actor->id,
             ]);
@@ -76,9 +97,9 @@ class CreateProjectDocument
             ProjectDocumentStatusHistory::query()->create([
                 'project_document_id' => $document->id,
                 'from_status' => null,
-                'to_status' => ProjectDocumentStatus::Draft,
+                'to_status' => $status,
                 'version_number' => 1,
-                'notes' => 'Dokumen dibuat.',
+                'notes' => $asArchive ? 'Dokumen diarsipkan.' : 'Dokumen dibuat.',
                 'actor_type' => DocumentActorType::Internal,
                 'changed_by' => $actor->id,
                 'changed_at' => now(),

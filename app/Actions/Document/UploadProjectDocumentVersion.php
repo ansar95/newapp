@@ -25,7 +25,7 @@ class UploadProjectDocumentVersion
         ProjectDocument::assertProjectAcceptsDocuments($document->project);
 
         if (! $document->current_status->acceptsNewVersion()) {
-            throw BusinessRuleException::make('Versi baru hanya dapat diupload saat dokumen berstatus DRAFT atau REVISION_REQUIRED.');
+            throw BusinessRuleException::make('Berkas baru hanya dapat ditambahkan pada dokumen arsip.');
         }
 
         $isRevision = $document->current_status === ProjectDocumentStatus::RevisionRequired;
@@ -42,7 +42,7 @@ class UploadProjectDocumentVersion
             $locked = ProjectDocument::query()->whereKey($document->id)->lockForUpdate()->firstOrFail();
 
             if (! $locked->current_status->acceptsNewVersion()) {
-                throw BusinessRuleException::make('Versi baru hanya dapat diupload saat dokumen berstatus DRAFT atau REVISION_REQUIRED.');
+                throw BusinessRuleException::make('Berkas baru hanya dapat ditambahkan pada dokumen arsip.');
             }
 
             return $this->storeProjectDocumentVersion->handle($actor, $locked, $file, $validated['notes'] ?? null);

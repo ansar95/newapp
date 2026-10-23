@@ -49,11 +49,11 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
                     <x-input-label for="start_date" value="Start Date" />
-                    <x-text-input id="start_date" name="start_date" type="date" class="mt-1 block w-full" :value="old('start_date', optional($project->start_date)->format('Y-m-d'))" />
+                    <x-date-input id="start_date" name="start_date" class="mt-1 block w-full" :value="old('start_date', optional($project->start_date)->format('Y-m-d'))" />
                 </div>
                 <div>
                     <x-input-label for="target_end_date" value="Target End Date" />
-                    <x-text-input id="target_end_date" name="target_end_date" type="date" class="mt-1 block w-full" :value="old('target_end_date', optional($project->target_end_date)->format('Y-m-d'))" />
+                    <x-date-input id="target_end_date" name="target_end_date" class="mt-1 block w-full" :value="old('target_end_date', optional($project->target_end_date)->format('Y-m-d'))" />
                 </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">

@@ -49,11 +49,11 @@
             <input type="hidden" name="section" value="{{ $section->value }}">
             <div class="w-full sm:w-44">
                 <x-input-label for="from" value="Dari Tanggal" />
-                <x-text-input id="from" name="from" type="date" class="mt-1 block w-full text-sm" :value="$filters['from']" />
+                <x-date-input id="from" name="from" class="mt-1 block w-full text-sm" :value="$filters['from']" />
             </div>
             <div class="w-full sm:w-44">
                 <x-input-label for="to" value="Sampai Tanggal" />
-                <x-text-input id="to" name="to" type="date" class="mt-1 block w-full text-sm" :value="$filters['to']" />
+                <x-date-input id="to" name="to" class="mt-1 block w-full text-sm" :value="$filters['to']" />
             </div>
             @if ($section === \App\Enums\ProjectReportSection::Procurement)
                 <div class="w-full sm:w-40">

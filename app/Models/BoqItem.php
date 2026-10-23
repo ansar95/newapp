@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'name',
     'description',
     'notes',
+    'level_3',
     'quantity',
     'unit',
     'unit_price',

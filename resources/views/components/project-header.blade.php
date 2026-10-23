@@ -95,6 +95,10 @@
            class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'progress' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
             Progress
         </a>
+        <a href="{{ route('projects.s-curve.show', $project) }}"
+           class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 's-curve' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">
+            Kurva S
+        </a>
         @can('viewReports', $project)
             <a href="{{ route('projects.reports.index', $project) }}"
                class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-600 {{ $tab === 'reports' ? 'bg-maroon-800 text-white' : 'bg-maroon-50 text-maroon-800 hover:bg-maroon-100' }}">

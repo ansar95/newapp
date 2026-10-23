@@ -139,6 +139,16 @@ class Project extends Model
         return $this->hasMany(ProjectManPower::class);
     }
 
+    public function sCurveBaselines(): HasMany
+    {
+        return $this->hasMany(SCurveBaseline::class)->orderBy('version');
+    }
+
+    public function progressSnapshots(): HasMany
+    {
+        return $this->hasMany(ProgressSnapshot::class)->orderBy('snapshot_date');
+    }
+
     /**
      * Man power can only be assigned or re-scheduled while the project is running.
      */

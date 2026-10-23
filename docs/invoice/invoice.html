@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Invoice</title>
+<script>
+/*
+ * ====================================================================
+ *  EDIT DATA INVOICE DI SINI, lalu jalankan:  .\make-pdf.ps1
+ *  - Harga: isi angka tanpa titik, mis. 15000000. null = belum diisi.
+ *  - Teks dalam [kurung siku] adalah placeholder yang perlu diganti.
+ * ====================================================================
+ */
+const invoice = {
+    number: 'INV/2026/10/001',
+    date: '2026-10-12',
+    dueDays: 14,
+    project: 'Aplikasi Project Management & Cost Control',
+
+    sender: {
+        name: '[Nama Anda / Nama Perusahaan]',
+        address: '[Alamat lengkap]',
+        phone: '[No. Telepon / WhatsApp]',
+        email: '[email@domain.com]',
+        logo: '', // opsional, mis. 'logo.png' (taruh file di folder yang sama)
+    },
+
+    client: {
+        company: '[Nama Perusahaan Klien]',
+        pic: '[Nama PIC Klien]',
+        address: '[Alamat Klien]',
+    },
+
+    bank: {
+        name: '[Nama Bank]',
+        account: '[Nomor Rekening]',
+        holder: '[Atas Nama]',
+    },
+
+    items: [
+        { name: 'User, Role & Hak Akses', desc: 'Manajemen pengguna, 6 role, dan hak akses per fitur', price: null },
+        { name: 'Manajemen Project & Kontrak', desc: 'Data project, nilai kontrak, status, dan dashboard project', price: null },
+        { name: 'BOQ & COGS', desc: 'Penyusunan BOQ material/jasa, approval, revisi, import/export Excel', price: null },
+        { name: 'Procurement & BMHP', desc: 'Permintaan pengadaan, BMHP, dan import item', price: null },
+        { name: 'Payment Plan & Pembayaran', desc: 'Rencana pembayaran per item BOQ dan pencatatan pembayaran', price: null },
+        { name: 'Penagihan (Termin), Dokumen & Notifikasi', desc: 'Termin penagihan, dokumen penagihan, pembayaran klien, notifikasi', price: null },
+        { name: 'Progress Pekerjaan', desc: 'Pencatatan dan pemantauan progress per item pekerjaan', price: null },
+        { name: 'Manajemen Asset', desc: 'Master asset, penugasan ke project, penanggung jawab, import/export Excel', price: null },
+        { name: 'Man Power', desc: 'Master tenaga kerja, upah harian, kasbon & pelunasan, import/export Excel', price: null },
+        { name: 'Laporan, Variance & Cost Control', desc: 'Laporan project, keuangan, progress, asset, dan analisis variance', price: null },
+        { name: 'Export/Import Project', desc: 'Backup dan pemindahan data project lengkap beserta file (ZIP)', price: null },
+    ],
+
+    notes: [
+        'Pembayaran dianggap lunas setelah dana diterima di rekening di atas.',
+        'Mohon cantumkan nomor invoice pada berita transfer.',
+    ],
+
+    signer: {
+        city: '[Kota]',
+        name: '[Nama Penanda Tangan]',
+        title: '[Jabatan]',
+    },
+};
+</script>
+<style>
+    @page { size: A4; margin: 12mm 14mm 12mm; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #2b1416; font-size: 10pt; line-height: 1.3; margin: 0; }
+    .page { page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+    .maroon { color: #7a1f2b; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #7a1f2b; padding-bottom: 8px; }
+    header img { max-height: 48px; margin-bottom: 6px; }
+    .sender-name { font-size: 15pt; font-weight: 700; color: #7a1f2b; }
+    .muted { color: #6b5456; font-size: 9.5pt; }
+    .doc-title { text-align: right; }
+    .doc-title h1 { margin: 0; font-size: 22pt; letter-spacing: 3px; color: #7a1f2b; }
+    .meta { margin-top: 6px; border-collapse: collapse; margin-left: auto; }
+    .meta td { padding: 1px 0 1px 12px; font-size: 9.5pt; }
+    .meta td:first-child { color: #6b5456; }
+    .parties { display: flex; gap: 24px; margin: 10px 0; }
+    .box { flex: 1; background: #fbf4f5; border-left: 4px solid #7a1f2b; padding: 7px 10px; border-radius: 4px; }
+    .box .label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 1px; color: #7a1f2b; font-weight: 700; margin-bottom: 4px; }
+    table.items { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    table.items th { background: #7a1f2b; color: #fff; font-weight: 600; padding: 5px 8px; font-size: 9.5pt; text-align: left; }
+    table.items td { padding: 3px 8px; line-height: 1.25; border-bottom: 1px solid #ecdcde; vertical-align: top; }
+    table.items tr:nth-child(even) td { background: #fdf9f9; }
+    table.items .num { text-align: right; white-space: nowrap; }
+    table.items .no { width: 32px; text-align: center; }
+    .item-desc { color: #6b5456; font-size: 8.5pt; }
+    .totals { width: 46%; margin-left: auto; border-collapse: collapse; margin-top: 4px; }
+    .totals td { padding: 3px 8px; }
+    .totals td:last-child { text-align: right; white-space: nowrap; }
+    .totals .grand td { background: #7a1f2b; color: #fff; font-weight: 700; font-size: 11.5pt; }
+    .terbilang { margin-top: 8px; padding: 6px 10px; border: 1px dashed #c9a3a8; border-radius: 4px; font-style: italic; }
+    .bottom { display: flex; gap: 24px; margin-top: 10px; }
+    .bottom > div { flex: 1; }
+    .bank td { padding: 1px 10px 1px 0; }
+    .sign { text-align: center; }
+    .sign .space { height: 50px; }
+    .sign .name { font-weight: 700; text-decoration: underline; }
+    ol.notes { margin: 4px 0 0; padding-left: 18px; font-size: 9pt; }
+    h2 { color: #7a1f2b; font-size: 15pt; margin: 18px 0 4px; }
+    .intro { margin: 0 0 12px; }
+    .features { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+    .feature { border: 1px solid #ecdcde; border-top: 3px solid #7a1f2b; border-radius: 4px; padding: 8px 10px; }
+    .feature h3 { margin: 0 0 3px; font-size: 10.5pt; color: #7a1f2b; }
+    .feature p { margin: 0; font-size: 9pt; color: #4a3436; }
+    .tech { margin-top: 14px; font-size: 9pt; color: #6b5456; border-top: 1px solid #ecdcde; padding-top: 8px; }
+    footer { margin-top: 8px; text-align: center; font-size: 8.5pt; color: #8a7375; }
+</style>
+</head>
+<body>
+<div class="page">
+    <header>
+        <div>
+            <div id="logo"></div>
+            <div class="sender-name" id="sender-name"></div>
+            <div class="muted" id="sender-detail"></div>
+        </div>
+        <div class="doc-title">
+            <h1>INVOICE</h1>
+            <table class="meta">
+                <tr><td>No. Invoice</td><td><strong id="inv-number"></strong></td></tr>
+                <tr><td>Tanggal</td><td id="inv-date"></td></tr>
+                <tr><td>Jatuh Tempo</td><td id="inv-due"></td></tr>
+            </table>
+        </div>
+    </header>
+
+    <div class="parties">
+        <div class="box">
+            <div class="label">Ditagihkan kepada</div>
+            <div><strong id="client-company"></strong></div>
+            <div id="client-pic"></div>
+            <div class="muted" id="client-address"></div>
+        </div>
+        <div class="box">
+            <div class="label">Pekerjaan</div>
+            <div><strong id="project-name"></strong></div>
+            <div class="muted">Pembuatan aplikasi berbasis web sesuai rincian modul di bawah. Ringkasan fitur terlampir pada halaman 2.</div>
+        </div>
+    </div>
+
+    <table class="items">
+        <thead>
+            <tr><th class="no">No</th><th>Modul / Pekerjaan</th><th class="num">Harga</th></tr>
+        </thead>
+        <tbody id="item-rows"></tbody>
+    </table>
+
+    <table class="totals">
+        <tr><td>Subtotal</td><td id="subtotal"></td></tr>
+        <tr><td>Pajak</td><td>-</td></tr>
+        <tr class="grand"><td>TOTAL TAGIHAN</td><td id="total"></td></tr>
+    </table>
+
+    <div class="terbilang"><strong>Terbilang:</strong> <span id="terbilang"></span></div>
+
+    <div class="bottom">
+        <div>
+            <div class="box">
+                <div class="label">Pembayaran ditransfer ke</div>
+                <table class="bank">
+                    <tr><td>Bank</td><td><strong id="bank-name"></strong></td></tr>
+                    <tr><td>No. Rekening</td><td><strong id="bank-account"></strong></td></tr>
+                    <tr><td>Atas Nama</td><td><strong id="bank-holder"></strong></td></tr>
+                </table>
+            </div>
+            <div style="margin-top:10px">
+                <strong class="maroon">Catatan</strong>
+                <ol class="notes" id="notes"></ol>
+            </div>
+        </div>
+        <div class="sign">
+            <div id="sign-place"></div>
+            <div>Hormat kami,</div>
+            <div class="space"></div>
+            <div class="name" id="sign-name"></div>
+            <div class="muted" id="sign-title"></div>
+        </div>
+    </div>
+
+    <footer>Terima kasih atas kepercayaan Anda.</footer>
+</div>
+
+<div class="page">
+    <h2>Lampiran: Ringkasan Fitur Aplikasi</h2>
+    <p class="intro muted" id="intro"></p>
+
+    <div class="features">
+        <div class="feature"><h3>User, Role &amp; Hak Akses</h3><p>Login, manajemen pengguna, dan 6 role (Superadmin, Project Admin, Finance, BOQ Cost Control, Approver, Project Site) dengan hak akses per fitur.</p></div>
+        <div class="feature"><h3>Manajemen Project &amp; Kontrak</h3><p>Data project, nilai kontrak, status project, dan halaman ringkasan per project dengan tab terpadu.</p></div>
+        <div class="feature"><h3>BOQ &amp; COGS</h3><p>Penyusunan BOQ dengan harga material dan jasa terpisah, kode item otomatis, submit &amp; approval, revisi, serta template/import/export Excel.</p></div>
+        <div class="feature"><h3>Procurement &amp; BMHP</h3><p>Permintaan pengadaan terhubung ke item BOQ, permintaan BMHP, dan import item dari file.</p></div>
+        <div class="feature"><h3>Payment Plan &amp; Pembayaran</h3><p>Rencana pembayaran per item BOQ, pencatatan pembayaran, dan perhitungan biaya aktual project.</p></div>
+        <div class="feature"><h3>Penagihan, Dokumen &amp; Notifikasi</h3><p>Termin penagihan ke klien, dokumen penagihan, pencatatan pembayaran klien, dan notifikasi saat termin siap ditagih.</p></div>
+        <div class="feature"><h3>Progress Pekerjaan</h3><p>Pencatatan progress per item pekerjaan dan progress keseluruhan project.</p></div>
+        <div class="feature"><h3>Manajemen Asset</h3><p>Master asset, kondisi &amp; tahun pembelian, penugasan ke project, penanggung jawab (nama &amp; jabatan), riwayat penggunaan, import/export Excel.</p></div>
+        <div class="feature"><h3>Man Power</h3><p>Master tenaga kerja &amp; upah harian, penempatan per project, total gaji, kasbon &amp; pelunasan yang masuk ke biaya aktual, import/export Excel.</p></div>
+        <div class="feature"><h3>Laporan, Variance &amp; Cost Control</h3><p>Laporan project, keuangan, progress, dan asset; ringkasan cost control; analisis variance anggaran vs aktual; export ke file.</p></div>
+        <div class="feature"><h3>Export/Import Project</h3><p>Backup seluruh data project (BOQ, pembayaran, penagihan, dokumen, asset, man power) beserta file lampiran dalam satu file ZIP, dan import kembali.</p></div>
+        <div class="feature"><h3>Kualitas &amp; Keamanan</h3><p>Validasi data berbahasa Indonesia, kontrol akses berbasis role, dan pengujian otomatis (300+ test) untuk menjaga kestabilan aplikasi.</p></div>
+    </div>
+
+    <div class="tech">Teknologi: Laravel 13 (PHP 8.3), MySQL, Tailwind CSS, Alpine.js. Aplikasi berbasis web, dapat diakses melalui browser.</div>
+</div>
+
+<script>
+(function () {
+    const $ = (id) => document.getElementById(id);
+    const text = (id, value) => { $(id).textContent = value; };
+    const rupiah = (n) => 'Rp ' + new Intl.NumberFormat('id-ID').format(n);
+    const blank = 'Rp ……………';
+    const dateId = (date) => date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    function terbilang(n) {
+        const words = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+        n = Math.floor(n);
+        if (n < 12) return words[n];
+        if (n < 20) return terbilang(n - 10) + ' belas';
+        if (n < 100) return terbilang(Math.floor(n / 10)) + ' puluh ' + terbilang(n % 10);
+        if (n < 200) return 'seratus ' + terbilang(n - 100);
+        if (n < 1000) return terbilang(Math.floor(n / 100)) + ' ratus ' + terbilang(n % 100);
+        if (n < 2000) return 'seribu ' + terbilang(n - 1000);
+        if (n < 1e6) return terbilang(Math.floor(n / 1000)) + ' ribu ' + terbilang(n % 1000);
+        if (n < 1e9) return terbilang(Math.floor(n / 1e6)) + ' juta ' + terbilang(n % 1e6);
+        if (n < 1e12) return terbilang(Math.floor(n / 1e9)) + ' miliar ' + terbilang(n % 1e9);
+        return terbilang(Math.floor(n / 1e12)) + ' triliun ' + terbilang(n % 1e12);
+    }
+
+    const s = invoice.sender;
+    if (s.logo) { $('logo').innerHTML = '<img src="' + s.logo + '" alt="Logo">'; }
+    text('sender-name', s.name);
+    $('sender-detail').innerHTML = [s.address, s.phone, s.email].filter(Boolean).map((v) => v.replace(/</g, '&lt;')).join('<br>');
+
+    const date = new Date(invoice.date + 'T00:00:00');
+    const due = new Date(date);
+    due.setDate(due.getDate() + invoice.dueDays);
+    text('inv-number', invoice.number);
+    text('inv-date', dateId(date));
+    text('inv-due', dateId(due));
+
+    text('client-company', invoice.client.company);
+    text('client-pic', 'Up. ' + invoice.client.pic);
+    text('client-address', invoice.client.address);
+    text('project-name', invoice.project);
+
+    const rows = $('item-rows');
+    invoice.items.forEach((item, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td class="no"></td><td><div></div><div class="item-desc"></div></td><td class="num"></td>';
+        tr.children[0].textContent = i + 1;
+        tr.children[1].children[0].textContent = item.name;
+        tr.children[1].children[1].textContent = item.desc || '';
+        tr.children[2].textContent = typeof item.price === 'number' ? rupiah(item.price) : blank;
+        rows.appendChild(tr);
+    });
+
+    const complete = invoice.items.every((item) => typeof item.price === 'number');
+    const total = invoice.items.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+    text('subtotal', complete ? rupiah(total) : blank);
+    text('total', complete ? rupiah(total) : blank);
+    text('terbilang', complete
+        ? (terbilang(total).replace(/\s+/g, ' ').trim() + ' rupiah').replace(/^./, (c) => c.toUpperCase())
+        : '[terbilang otomatis setelah semua harga diisi]');
+
+    text('bank-name', invoice.bank.name);
+    text('bank-account', invoice.bank.account);
+    text('bank-holder', invoice.bank.holder);
+    invoice.notes.forEach((note) => {
+        const li = document.createElement('li');
+        li.textContent = note;
+        $('notes').appendChild(li);
+    });
+
+    text('sign-place', invoice.signer.city + ', ' + dateId(date));
+    text('sign-name', invoice.signer.name);
+    text('sign-title', invoice.signer.title);
+    text('intro', 'Lampiran invoice ' + invoice.number + ' — ' + invoice.project + ' untuk ' + invoice.client.company + '.');
+    document.title = 'Invoice ' + invoice.number;
+})();
+</script>
+</body>
+</html>

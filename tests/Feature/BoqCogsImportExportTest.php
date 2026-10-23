@@ -112,7 +112,8 @@ class BoqCogsImportExportTest extends TestCase
             ->assertJsonCount(3, 'rows')
             ->assertJsonPath('rows.2.item_code', '')
             ->assertJsonPath('rows.2.quantity', '10')
-            ->assertJsonPath('rows.2.item_notes', 'Termasuk aksesoris');
+            ->assertJsonPath('rows.2.level_2', 'Termasuk aksesoris')
+            ->assertJsonPath('rows.2.level_3', null);
 
         $this->actingAs($actor)
             ->postJson(route('boqs.cogs.parse'), ['file' => UploadedFile::fake()->createWithContent('cogs.csv', "name\nX\n")])
@@ -235,18 +236,26 @@ class BoqCogsImportExportTest extends TestCase
                 'material_unit_price' => 50000,
                 'service_unit_price' => 0,
                 'notes' => 'Termasuk aksesoris',
+                'level_3' => 'Lantai dasar',
             ])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-NOTE', 'notes' => 'Termasuk aksesoris']);
+        $this->assertDatabaseHas('boq_items', [
+            'code' => 'ITEM-NOTE',
+            'notes' => 'Termasuk aksesoris',
+            'level_3' => 'Lantai dasar',
+        ]);
 
         $this->actingAs($actor)
             ->get(route('boqs.show', $boq))
             ->assertOk()
-            ->assertSee('Keterangan')
+            ->assertSee('Level 2')
+            ->assertSee('Level 3')
             ->assertSee('name="notes"', false)
-            ->assertSee('Termasuk aksesoris');
+            ->assertSee('name="level_3"', false)
+            ->assertSee('Termasuk aksesoris')
+            ->assertSee('Lantai dasar');
     }
 
     public function test_add_item_rejects_notes_longer_than_255_characters(): void
@@ -265,9 +274,23 @@ class BoqCogsImportExportTest extends TestCase
                 'service_unit_price' => 0,
                 'notes' => str_repeat('a', 256),
             ])
-            ->assertSessionHasErrors(['notes' => 'Keterangan maksimal 255 karakter.']);
+            ->assertSessionHasErrors(['notes' => 'Level 2 maksimal 255 karakter.']);
 
         $this->assertDatabaseMissing('boq_items', ['code' => 'ITEM-LONG']);
+
+        $this->actingAs($actor)
+            ->post(route('boqs.items.store', $boq->cogs->first()), [
+                'code' => 'ITEM-LONG3',
+                'name' => 'Item',
+                'quantity' => 1,
+                'unit' => 'ls',
+                'material_unit_price' => 1000,
+                'service_unit_price' => 0,
+                'level_3' => str_repeat('b', 256),
+            ])
+            ->assertSessionHasErrors(['level_3' => 'Level 3 maksimal 255 karakter.']);
+
+        $this->assertDatabaseMissing('boq_items', ['code' => 'ITEM-LONG3']);
     }
 
     public function test_csv_import_and_export_include_item_notes(): void
@@ -278,7 +301,7 @@ class BoqCogsImportExportTest extends TestCase
 
         $csv = BoqCogsCsv::rowsToCsv([
             BoqCogsCsv::HEADERS,
-            ['Procurement', '', 'ITEM-N01', 'Panel', '', '1', 'set', '7500000', '0', 'Merk Schneider'],
+            ['Procurement', '', 'ITEM-N01', 'Panel', '', '1', 'set', '7500000', '0', 'Merk Schneider', 'Gedung A'],
         ]);
 
         $this->actingAs($actor)
@@ -286,15 +309,19 @@ class BoqCogsImportExportTest extends TestCase
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-N01', 'notes' => 'Merk Schneider']);
+        $this->assertDatabaseHas('boq_items', [
+            'code' => 'ITEM-N01',
+            'notes' => 'Merk Schneider',
+            'level_3' => 'Gedung A',
+        ]);
 
         $rows = SimpleXlsx::readString($this->actingAs($actor)
             ->get(route('boqs.cogs.export', $boq))
             ->assertOk()
             ->streamedContent());
 
-        $this->assertSame(['service_price', 'item_notes'], array_slice($rows[0], 8, 2));
-        $this->assertContains(['ITEM-N01', 'Panel', '', '1', 'set', '7500000', '0', 'Merk Schneider'], array_map(fn (array $row) => array_slice($row, 2), $rows));
+        $this->assertSame(['service_price', 'level_2', 'level_3'], array_slice($rows[0], 8, 3));
+        $this->assertContains(['ITEM-N01', 'Panel', '', '1', 'set', '7500000', '0', 'Merk Schneider', 'Gedung A'], array_map(fn (array $row) => array_slice($row, 2), $rows));
     }
 
     public function test_create_boq_stores_item_notes(): void
@@ -313,12 +340,17 @@ class BoqCogsImportExportTest extends TestCase
                         'unit' => 'ls',
                         'material_unit_price' => 1000000,
                         'notes' => 'Dari import CSV',
+                        'level_3' => 'Area server',
                     ],
                 ],
             ],
         ], code: 'BOQ-NCRT');
 
-        $this->assertDatabaseHas('boq_items', ['code' => 'ITEM-C01', 'notes' => 'Dari import CSV']);
+        $this->assertDatabaseHas('boq_items', [
+            'code' => 'ITEM-C01',
+            'notes' => 'Dari import CSV',
+            'level_3' => 'Area server',
+        ]);
     }
 
     public function test_existing_item_notes_can_be_edited_and_are_shown_in_review(): void
@@ -331,7 +363,7 @@ class BoqCogsImportExportTest extends TestCase
         $this->actingAs($actor)
             ->get(route('boqs.show', $boq))
             ->assertOk()
-            ->assertSeeInOrder(['Item', 'Keterangan', 'Qty']);
+            ->assertSeeInOrder(['Item', 'Level 2', 'Level 3', 'Qty']);
 
         $this->actingAs($actor)
             ->patch(route('boqs.items.update', $item), [
@@ -341,19 +373,24 @@ class BoqCogsImportExportTest extends TestCase
                 'material_unit_price' => $item->material_unit_price,
                 'service_unit_price' => $item->service_unit_price,
                 'notes' => 'Sesuai gambar kerja rev. B',
+                'level_3' => 'Zona utilitas',
             ])
             ->assertRedirect()
             ->assertSessionHasNoErrors();
 
-        $this->assertSame('Sesuai gambar kerja rev. B', $item->fresh()->notes);
+        $item->refresh();
+        $this->assertSame('Sesuai gambar kerja rev. B', $item->notes);
+        $this->assertSame('Zona utilitas', $item->level_3);
 
         app(SubmitBOQ::class)->handle($actor, $boq->fresh(['project', 'cogs.items']));
 
         $this->actingAs($actor)
             ->get(route('boqs.review', $boq))
             ->assertOk()
-            ->assertSee('Keterangan')
-            ->assertSee('Sesuai gambar kerja rev. B');
+            ->assertSee('Level 2')
+            ->assertSee('Level 3')
+            ->assertSee('Sesuai gambar kerja rev. B')
+            ->assertSee('Zona utilitas');
     }
 
     public function test_create_boq_form_has_notes_column_per_item(): void
@@ -364,8 +401,10 @@ class BoqCogsImportExportTest extends TestCase
         $this->actingAs($actor)
             ->get(route('projects.boq.create', $project))
             ->assertOk()
-            ->assertSee('Keterangan')
-            ->assertSee('[notes]`', false);
+            ->assertSee('Level 2')
+            ->assertSee('Level 3')
+            ->assertSee('[notes]`', false)
+            ->assertSee('[level_3]`', false);
     }
 
     public function test_item_code_is_generated_per_cogs_when_left_blank(): void

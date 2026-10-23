@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Buku Panduan Pengguna — PM Cost Control</title>
+<style>
+    @page { size: A4; margin: 14mm 14mm 16mm; }
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", Arial, sans-serif; color: #2b1416; font-size: 10.5pt; line-height: 1.45; margin: 0; }
+    h1 { color: #7a1f2b; font-size: 18pt; margin: 0 0 8px; page-break-before: always; }
+    h1.cover-title { page-break-before: auto; font-size: 28pt; letter-spacing: 0; }
+    h2 { color: #7a1f2b; font-size: 13pt; margin: 16px 0 6px; page-break-after: avoid; }
+    h3 { font-size: 11.5pt; margin: 12px 0 4px; page-break-after: avoid; }
+    p { margin: 0 0 8px; }
+    ul, ol { margin: 0 0 10px; padding-left: 18px; }
+    li { margin-bottom: 3px; }
+    a { color: #7a1f2b; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 9pt; page-break-inside: avoid; }
+    th { background: #7a1f2b; color: #fff; text-align: left; padding: 5px 6px; }
+    td { border-bottom: 1px solid #ecdcde; padding: 4px 6px; vertical-align: top; }
+    tr:nth-child(even) td { background: #fdf9f9; }
+    .center { text-align: center; }
+    .cover { min-height: 250mm; display: flex; flex-direction: column; justify-content: center; border-top: 10px solid #7a1f2b; padding-top: 40px; }
+    .kicker { letter-spacing: 2px; text-transform: uppercase; color: #7a1f2b; font-size: 10pt; font-weight: 700; }
+    .muted { color: #6b5456; }
+    figure { margin: 8px 0 14px; page-break-inside: avoid; }
+    figure img { width: 100%; border: 1px solid #ecdcde; border-radius: 4px; }
+    figcaption { font-size: 8.5pt; color: #6b5456; margin-top: 3px; }
+    .box { background: #fbf4f5; border-left: 4px solid #7a1f2b; padding: 8px 12px; margin: 8px 0 12px; border-radius: 0 4px 4px 0; }
+    .toc a { text-decoration: none; }
+    .toc td { border: 0; background: transparent; padding: 2px 0; }
+    code { font-family: Consolas, monospace; font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+    <p class="kicker">Buku panduan pengguna</p>
+    <h1 class="cover-title">PM Cost Control</h1>
+    <p style="font-size:14pt;margin-top:0">Panduan untuk setiap peran pengguna</p>
+    <p class="muted">Superadmin · Project Admin · BOQ / Cost Control · Approver · Finance · Project / Site</p>
+    <p class="muted" style="margin-top:28px">21 Oktober 2026</p>
+</section>
+
+<h1>Cara memakai buku ini</h1>
+<p>Buku ini menjelaskan cara memakai aplikasi <strong>PM Cost Control</strong>: menyusun biaya project (BOQ), menyetujuinya, mencatat pembayaran dan progress, lalu menagih ke klien. Setiap peran hanya melihat menu dan tombol yang menjadi haknya.</p>
+<p>Bab 1–15 menjelaskan cara kerja tiap bagian, lengkap dengan siapa yang boleh melakukannya. Bab 16 merangkum tugas harian masing-masing peran. Jika sebuah tombol tidak muncul di layar Anda, peran Anda memang tidak memiliki akses itu — bukan karena halaman rusak.</p>
+<p>Tangkapan layar diambil dari data contoh yang ada di aplikasi. Nama project, angka, dan tanggal di komputer Anda bisa berbeda.</p>
+<div class="box">Akun dan kata sandi diberikan oleh Superadmin. Jangan meminjamkan akun, karena setiap perubahan tercatat atas nama pengguna yang masuk.</div>
+
+<h2>Daftar isi</h2>
+<table class="toc">
+    <tr><td>1. Gambaran aplikasi</td><td>2. Masuk dan profil</td></tr>
+    <tr><td>3. Menu dan enam peran</td><td>4. Project</td></tr>
+    <tr><td>5. BOQ dan COGS</td><td>6. Approval dan revisi BOQ</td></tr>
+    <tr><td>7. Payment</td><td>8. Progress</td></tr>
+    <tr><td>9. Pengadaan, BMHP, dan sewa alat</td><td>10. Penagihan ke klien</td></tr>
+    <tr><td>11. Dokumen</td><td>12. Asset</td></tr>
+    <tr><td>13. Man Power</td><td>14. Laporan</td></tr>
+    <tr><td>15. Pengguna</td><td>16. Panduan per peran</td></tr>
+    <tr><td>17. Arti status</td><td>18. Hal yang sering ditanyakan</td></tr>
+</table>
+
+<h1>1. Gambaran aplikasi</h1>
+<p>Alur utama sebuah project:</p>
+<ol>
+    <li><strong>Project</strong> dibuat dan diaktifkan.</li>
+    <li><strong>BOQ</strong> disusun (kelompok biaya / COGS dan item pekerjaan), lalu diajukan.</li>
+    <li><strong>Approver</strong> menyetujui BOQ, atau mengembalikannya untuk diperbaiki.</li>
+    <li><strong>Payment</strong> merencanakan dan mencatat uang yang keluar untuk pekerjaan.</li>
+    <li><strong>Progress</strong> mencatat sejauh mana item pekerjaan sudah selesai.</li>
+    <li><strong>Penagihan</strong> menagih klien berdasarkan termin. Ini pemasukan, terpisah dari Payment.</li>
+</ol>
+<p>Di samping alur itu ada pengadaan (BMHP, aset, sewa alat), dokumen project, asset yang dipakai di lapangan, dan man power (upah serta kasbon). Asset tidak masuk ke perhitungan biaya project. Upah man power yang sudah dibayar masuk ke biaya aktual project.</p>
+<p>Kotak <strong>Next Action</strong> di halaman project memberi tahu langkah yang paling masuk akal berikutnya, misalnya “Update progress item pekerjaan”.</p>
+
+<h1>2. Masuk dan profil</h1>
+<figure>
+    <img src="img/01-login.jpg" alt="Halaman masuk">
+    <figcaption>Halaman masuk. Isi email dan password, lalu klik Masuk.</figcaption>
+</figure>
+<ol>
+    <li>Buka alamat aplikasi di peramban.</li>
+    <li>Isi <strong>Email</strong> dan <strong>Password</strong>.</li>
+    <li>Centang <strong>Ingat saya</strong> hanya di komputer pribadi.</li>
+    <li>Klik <strong>Masuk</strong>.</li>
+</ol>
+<p>Jika lupa kata sandi, klik <strong>Lupa password?</strong>, isi email, lalu ikuti tautan yang dikirim ke email tersebut.</p>
+<p>Untuk keluar, klik <strong>Logout</strong> di kanan atas. Nama dan peran Anda tampil di bawah tombol itu, dan juga di bawah menu samping.</p>
+<p>Untuk mengubah nama, email, atau kata sandi: klik nama Anda lalu buka halaman profil. Kata sandi baru harus diketik dua kali dan dikonfirmasi dengan kata sandi yang sedang dipakai.</p>
+
+<h1>3. Menu dan enam peran</h1>
+<figure>
+    <img src="img/02-dashboard.jpg" alt="Dashboard Superadmin">
+    <figcaption>Dashboard. Menu kiri berubah sesuai peran. Angka pada Approval BOQ adalah jumlah BOQ yang menunggu keputusan.</figcaption>
+</figure>
+<p>Dashboard menampilkan peringatan kontrak yang akan atau sudah berakhir, jumlah project, project terbaru, dan batang progress. Tombol <strong>+ New Project</strong> hanya muncul bagi yang berhak membuat project. <strong>Reports</strong> membuka laporan global.</p>
+<table>
+    <thead><tr><th>Menu</th><th>Siapa yang melihat</th></tr></thead>
+    <tbody>
+        <tr><td>Dashboard, Projects</td><td>Semua peran</td></tr>
+        <tr><td>Approval BOQ</td><td>Superadmin, Approver</td></tr>
+        <tr><td>Assets</td><td>Semua peran (mengubah data master: Superadmin dan Project Admin)</td></tr>
+        <tr><td>Man Power</td><td>Semua peran kecuali Project / Site</td></tr>
+        <tr><td>Reports</td><td>Semua peran</td></tr>
+        <tr><td>Users</td><td>Superadmin</td></tr>
+    </tbody>
+</table>
+<p>Di dalam sebuah project ada tab. Tab yang tidak menjadi hak Anda tidak ditampilkan.</p>
+<table>
+    <thead><tr><th>Tab</th><th>Isi singkat</th><th>Tidak tampil untuk</th></tr></thead>
+    <tbody>
+        <tr><td>Overview</td><td>Identitas project, ringkasan, dan langkah berikutnya</td><td>—</td></tr>
+        <tr><td>BOQ</td><td>Daftar biaya</td><td>—</td></tr>
+        <tr><td>Assets</td><td>Asset yang dipakai project ini</td><td>—</td></tr>
+        <tr><td>Man Power</td><td>Tenaga kerja, hari kerja, kasbon</td><td>Project / Site</td></tr>
+        <tr><td>Pengadaan, BMHP, Sewa Alat</td><td>Permintaan barang, bahan, dan sewa</td><td>—</td></tr>
+        <tr><td>Penagihan</td><td>Termin dan tagihan ke klien</td><td>Project / Site</td></tr>
+        <tr><td>Dokumen</td><td>Dokumen project dan status review</td><td>Project / Site</td></tr>
+        <tr><td>Payment</td><td>Rencana dan pembayaran keluar</td><td>—</td></tr>
+        <tr><td>Progress</td><td>Persen selesai tiap item</td><td>—</td></tr>
+        <tr><td>Laporan</td><td>Laporan project ini</td><td>—</td></tr>
+    </tbody>
+</table>
+
+<h1>4. Project</h1>
+<figure>
+    <img src="img/03-projects.jpg" alt="Daftar project">
+    <figcaption>Daftar project. Superadmin juga melihat kartu Import Project di halaman ini.</figcaption>
+</figure>
+<h2>Membuat project</h2>
+<p>Yang boleh: <strong>Superadmin</strong> dan <strong>Project Admin</strong>.</p>
+<ol>
+    <li>Klik <strong>+ New Project</strong>.</li>
+    <li>Isi kode, nama, klien, nomor kontrak, nilai kontrak, tanggal mulai, dan target selesai.</li>
+    <li>Simpan. Project baru berstatus <strong>DRAFT</strong>.</li>
+    <li>Buka project itu, lalu klik <strong>Activate Project</strong> agar status menjadi <strong>ACTIVE</strong>. Sebagian pekerjaan (man power, penugasan asset) hanya bisa dilakukan setelah project aktif.</li>
+</ol>
+<p>Nilai kontrak perlu diisi sebelum termin penagihan dibuat. Jika belum, buka <strong>Edit Project</strong>.</p>
+<figure>
+    <img src="img/04-project.jpg" alt="Halaman project">
+    <figcaption>Overview project: klien, status, progress, dan tab bagian.</figcaption>
+</figure>
+<h2>Export dan import project</h2>
+<p>Hanya <strong>Superadmin</strong>. Di Overview ada kartu <strong>Export Project</strong>: seluruh data project (BOQ, pembayaran, penagihan, dokumen, asset, man power) beserta lampiran diunduh sebagai satu file ZIP. Di daftar project ada <strong>Import Project</strong> untuk memasukkan file ZIP itu ke aplikasi ini. Import ditolak jika ada nomor yang sudah dipakai, dan alasannya ditampilkan sebagai daftar.</p>
+<h2>Menghapus project</h2>
+<p>Hanya <strong>Superadmin</strong>. Di bagian bawah Overview ada <strong>Hapus Project</strong>. Ketik kode project persis seperti yang diminta, lalu konfirmasi. Project yang sudah dihapus tidak tampil di daftar.</p>
+
+<h1>5. BOQ dan COGS</h1>
+<p>BOQ adalah daftar biaya project. <strong>COGS</strong> adalah kelompok biaya. Di dalamnya ada <strong>Item Pekerjaan</strong> dengan jumlah, satuan, harga material, harga jasa, dan keterangan. Kode COGS dan kode item dibuat otomatis: <code>COGS-001</code>, <code>ITEM-001</code>, <code>ITEM-002</code>, dan seterusnya. Nomor item dihitung ulang di tiap COGS.</p>
+<p>Yang boleh menyusun dan mengajukan BOQ: <strong>Superadmin</strong>, <strong>Project Admin</strong>, dan <strong>BOQ / Cost Control</strong>. Perubahan hanya bisa dilakukan saat BOQ berstatus <strong>DRAFT</strong> atau sedang diperbaiki setelah revisi.</p>
+<figure>
+    <img src="img/05-boq.jpg" alt="Tab BOQ">
+    <figcaption>Tab BOQ pada project yang sudah disetujui. Tombol Revisi BOQ, Payment Planning, dan Export Excel.</figcaption>
+</figure>
+<h2>Menyusun BOQ dari formulir</h2>
+<ol>
+    <li>Buka tab <strong>BOQ</strong>, klik <strong>Buat BOQ</strong> (atau <strong>Buat BOQ Lain</strong> jika sudah ada BOQ).</li>
+    <li>Isi kode BOQ dan nomor revisi. Tambah COGS, lalu isi item: nama, jumlah, satuan, harga material, harga jasa, dan keterangan. Kode item boleh dikosongkan.</li>
+    <li>Periksa total di bagian bawah, lalu simpan.</li>
+</ol>
+<h2>Menyusun BOQ dari Excel</h2>
+<ol>
+    <li>Di halaman buat BOQ, klik <strong>Download Template Excel</strong>.</li>
+    <li>Isi file di Excel. Kolomnya: <code>cogs_name</code>, <code>cogs_description</code>, <code>item_name</code>, <code>item_description</code>, <code>quantity</code>, <code>unit</code>, <code>material_price</code>, <code>service_price</code>, <code>item_notes</code>. Tidak ada kolom kode item — kode diisi aplikasi.</li>
+    <li>Klik <strong>Import Excel/CSV</strong> dan pilih file <code>.xlsx</code>. Isi formulir terisi dari file itu. Periksa dulu, baru simpan.</li>
+    <li><strong>Export Form Excel</strong> mengunduh isian formulir yang sedang terbuka, sebelum disimpan.</li>
+</ol>
+<p>File CSV juga diterima. Aplikasi mengenali pemisah koma, titik koma, atau tab, serta angka seperti <code>3,5</code> atau <code>Rp 12.500</code>. File Excel lama berekstensi <code>.xls</code> ditolak; simpan ulang sebagai <code>.xlsx</code>.</p>
+<p>Di halaman BOQ yang masih DRAFT, import juga bisa dilakukan langsung ke BOQ yang sudah tersimpan. Item dengan kode yang sudah ada dilewati, supaya tidak ganda. Karena itu file hasil <strong>Export Excel</strong> (yang masih memuat kode item) aman diimpor ulang.</p>
+<h2>Mengajukan BOQ</h2>
+<ol>
+    <li>Buka BOQ, periksa item dan total.</li>
+    <li>Klik <strong>Submit BOQ</strong>.</li>
+    <li>Status berubah menjadi <strong>WAITING APPROVAL</strong>. BOQ muncul di menu <strong>Approval BOQ</strong>.</li>
+</ol>
+
+<h1>6. Approval dan revisi BOQ</h1>
+<p>Yang boleh memutuskan: <strong>Superadmin</strong> dan <strong>Approver</strong>.</p>
+<figure>
+    <img src="img/16-approval.jpg" alt="Antrian approval BOQ">
+    <figcaption>Antrian Approval BOQ. Yang paling lama menunggu tampil di atas.</figcaption>
+</figure>
+<ol>
+    <li>Buka <strong>Approval BOQ</strong>. Angka di menu adalah jumlah yang menunggu.</li>
+    <li>Klik <strong>Review &amp; Approve</strong> pada baris BOQ.</li>
+    <li>Periksa kelompok biaya, item, harga, dan keterangan.</li>
+    <li>Setujui jika sudah benar. Status menjadi <strong>APPROVED</strong>. Setelah ini Payment Planning dan progress bisa dilanjutkan.</li>
+    <li>Jika belum benar, minta revisi dan tulis catatan yang harus diperbaiki. Status menjadi <strong>REVISION REQUIRED</strong>.</li>
+</ol>
+<h2>Memperbaiki BOQ yang diminta revisi</h2>
+<p>Yang boleh mengubah dan mengajukan ulang: <strong>Superadmin</strong>, <strong>Project Admin</strong>, dan <strong>BOQ / Cost Control</strong>. Approver dapat membuka revisi, tetapi yang memperbaiki adalah tim penyusun BOQ.</p>
+<ol>
+    <li>Buka tab BOQ project tersebut, lalu <strong>Revisi BOQ</strong>.</li>
+    <li>Ubah item sesuai catatan. Saat revisi berlangsung, rencana pembayaran yang sudah ada tetap bisa dilihat, tetapi tidak diubah dari sini.</li>
+    <li>Klik <strong>Submit BOQ Again</strong>.</li>
+    <li>Approver meninjau ulang dari menu Approval BOQ.</li>
+</ol>
+
+<h1>7. Payment</h1>
+<p>Payment adalah uang yang <em>keluar</em> untuk pekerjaan, terikat ke item BOQ yang sudah <strong>APPROVED</strong>. Ini berbeda dari Penagihan (uang yang masuk dari klien).</p>
+<figure>
+    <img src="img/06-payment.jpg" alt="Tab Payment">
+    <figcaption>Tab Payment: rencana pembayaran dan posisi biaya aktual, termasuk man power.</figcaption>
+</figure>
+<p>Membuat dan mengubah rencana, serta memproses pembayaran: <strong>Superadmin</strong> dan <strong>Finance</strong>. Peran lain dapat melihat.</p>
+<ol>
+    <li>Dari tab BOQ, klik <strong>Payment Planning</strong>, atau buka tab <strong>Payment</strong>.</li>
+    <li>Buat rencana pada item yang dipilih. Pilih jenis <strong>Direncanakan</strong> (ada tanggal) atau <strong>Bisa Dibayar Langsung</strong>.</li>
+    <li>Saat rencana siap dicairkan, tandai siap bayar. Status rencana berjalan dari PLANNED ke READY TO PAY, lalu PAID.</li>
+    <li>Buka pembayaran, isi tanggal, nilai, dan bukti jika diminta, lalu simpan. Status pembayaran <strong>Paid</strong>.</li>
+    <li>Pembayaran yang salah dapat dibatalkan menjadi <strong>Void</strong>. Data tidak dihapus, supaya riwayat tetap ada.</li>
+</ol>
+<p>Selama BOQ sedang direvisi, rencana yang sudah tersimpan hanya bisa dilihat.</p>
+
+<h1>8. Progress</h1>
+<p>Progress project dihitung dari nilai item, bukan dari rata-rata persen: <strong>Progress = Total Nilai Selesai ÷ Total BOQ × 100%</strong>. Progress bisa diperbarui setelah BOQ berstatus APPROVED, tanpa harus menunggu payment berstatus Paid.</p>
+<figure>
+    <img src="img/07-progress.jpg" alt="Tab Progress">
+    <figcaption>Tab Progress. Hanya Project / Site dan Superadmin yang dapat mengubah angka.</figcaption>
+</figure>
+<p>Yang boleh mengubah angka progress: <strong>Superadmin</strong> dan <strong>Project / Site</strong>. Peran lain hanya melihat.</p>
+<ol>
+    <li>Buka tab <strong>Progress</strong>, atau klik <strong>Update Progress</strong> pada kotak Next Action.</li>
+    <li>Isi progress item (0–100). Status item mengikuti isian: belum mulai, berjalan, atau selesai.</li>
+    <li>Simpan. Batang progress di kepala project dan di dashboard ikut berubah.</li>
+</ol>
+
+<h1>9. Pengadaan, BMHP, dan sewa alat</h1>
+<p>Tiga jenis permintaan: <strong>BMHP</strong> (bahan), <strong>Aset</strong>, dan <strong>Sewa Alat</strong>. Tab BMHP dan Sewa Alat menampilkan permintaan jenis itu beserta alokasinya ke item BOQ.</p>
+<figure>
+    <img src="img/08-pengadaan.jpg" alt="Tab Pengadaan">
+    <figcaption>Tab Pengadaan pada sebuah project.</figcaption>
+</figure>
+<table>
+    <thead><tr><th>Langkah</th><th>Yang boleh</th></tr></thead>
+    <tbody>
+        <tr><td>Membuat, mengubah, mengajukan</td><td>Superadmin, Project Admin, Project / Site</td></tr>
+        <tr><td>Mengalokasikan ke item BOQ</td><td>Superadmin, Project Admin, BOQ / Cost Control, Project / Site</td></tr>
+        <tr><td>Menyetujui</td><td>Superadmin, Approver</td></tr>
+        <tr><td>Membayar dan membatalkan</td><td>Superadmin, Finance</td></tr>
+    </tbody>
+</table>
+<ol>
+    <li>Tab <strong>Pengadaan</strong> → buat permintaan. Pilih jenis, isi item, tanggal, dan keterangan. Untuk BMHP, item bisa diimpor dari CSV lewat <strong>Download Template CSV</strong> dan <strong>Import CSV</strong> pada formulir. Periksa daftarnya sebelum menyimpan.</li>
+    <li>Simpan sebagai draft, lalu klik <strong>Ajukan</strong>. Status menjadi Diajukan.</li>
+    <li>Approver klik <strong>Setujui</strong>. Jika perlu diperbaiki, permintaan dapat dikembalikan ke draft.</li>
+    <li>Finance membayar dan dapat melampirkan bukti. Status menjadi Dibayar. Pembatalan mengubah status menjadi Dibatalkan.</li>
+</ol>
+<p>Alokasi menghubungkan nilai permintaan ke item BOQ, supaya laporan biaya bisa dibandingkan dengan anggaran item tersebut.</p>
+
+<h1>10. Penagihan ke klien</h1>
+<p>Penagihan adalah pemasukan dari klien. Nilainya tidak mengubah BOQ, progress, BMHP, maupun Payment. Yang tidak melihat tab ini: <strong>Project / Site</strong>.</p>
+<figure>
+    <img src="img/09-penagihan.jpg" alt="Tab Penagihan">
+    <figcaption>Tab Penagihan. Termin tidak bisa dibuat sebelum nilai kontrak diisi.</figcaption>
+</figure>
+<p>Menyusun termin serta membuat dan mengajukan penagihan: <strong>Superadmin</strong>, <strong>Project Admin</strong>, dan <strong>Finance</strong>. Mengirim ke klien, membatalkan, dan mencatat uang yang diterima: <strong>Superadmin</strong> dan <strong>Finance</strong>. Approver dapat melihat penagihan dan pembayaran klien.</p>
+<h2>Termin</h2>
+<ol>
+    <li>Pastikan nilai kontrak sudah diisi lewat <strong>Edit Project</strong>. Jumlah seluruh termin tidak boleh melebihi nilai kontrak.</li>
+    <li>Buat termin. Cara hitung: <strong>Persentase</strong> dari nilai kontrak, atau <strong>Nilai Tetap</strong>.</li>
+    <li>Pemicu kesiapan: <strong>Manual</strong>, <strong>Progress Fisik</strong>, <strong>Milestone</strong>, atau <strong>Tanggal</strong>.</li>
+    <li>Termin harus berstatus <strong>Ready</strong> sebelum ditagihkan. Untuk pemicu manual, tandai siap. Untuk progress atau tanggal, aplikasi menandai siap saat syarat terpenuhi, dan memberi tahu pengguna yang mengurus penagihan.</li>
+</ol>
+<h2>Penagihan dan pembayaran klien</h2>
+<ol>
+    <li>Buat penagihan dari termin yang Ready. Lampirkan dokumen bila ada.</li>
+    <li>Klik <strong>Submit</strong>. Setelah submit, isi penagihan tidak dapat diubah. Jika masih harus diperbaiki sebelum dikirim, kembalikan ke draft (selama belum dikirim).</li>
+    <li>Finance klik kirim. Status menjadi <strong>Sent</strong>. Baru setelah terkirim, nilainya dihitung sebagai tertagih.</li>
+    <li>Saat klien membayar, catat pembayaran (tanggal, nilai, bukti). Status berjalan ke Partially Paid lalu Paid. Pembayaran yang salah dibatalkan, tidak dihapus.</li>
+    <li>Penagihan yang tidak jadi dapat dibatalkan menjadi Cancelled.</li>
+</ol>
+
+<h1>11. Dokumen</h1>
+<p>Tab <strong>Dokumen</strong> menyimpan berkas project dan alur review-nya. Project / Site tidak melihat tab ini. Approver dapat melihat dan mengunduh. Mengelola dokumen (membuat, mengajukan, merevisi, menyetujui, membatalkan): <strong>Superadmin</strong>, <strong>Project Admin</strong>, dan <strong>Finance</strong>.</p>
+<ol>
+    <li>Buat dokumen, pilih jenisnya, dan unggah berkas. Status awal <strong>Draft</strong>.</li>
+    <li>Klik <strong>Submit ke Client</strong> bila dokumen memang dikirim ke klien. Setelah submit, berkas tidak diganti sampai ada permintaan revisi.</li>
+    <li>Review dimulai (Under Review). Peninjau dapat meminta revisi (Revision Required). Penyusun mengunggah versi baru dan mengajukan ulang (Resubmitted).</li>
+    <li>Jika diterima, status menjadi <strong>Approved</strong>. Dokumen yang tidak dipakai di-<strong>Cancel</strong>.</li>
+    <li>Setiap versi tetap bisa dilihat dan diunduh, supaya riwayat berkas tidak hilang.</li>
+</ol>
+
+<h1>12. Asset</h1>
+<p>Master asset adalah daftar alat milik perusahaan. Asset yang sedang diminta atau dipakai project lain tidak dapat ditugaskan. Asset tidak menambah biaya project.</p>
+<figure>
+    <img src="img/12-assets.jpg" alt="Master asset">
+    <figcaption>Master asset. Tambah satu per satu, atau lewat Excel.</figcaption>
+</figure>
+<p>Melihat: semua peran. Menambah, mengubah, mengimpor, dan menghapus master: <strong>Superadmin</strong> dan <strong>Project Admin</strong>.</p>
+<ol>
+    <li>Menu <strong>Assets</strong> → <strong>+ New Asset</strong>. Isi kode, nama, kategori, merek, model, satuan, kondisi (Baik, Cukup Baik, Kurang Baik, Rusak), dan tahun pembelian.</li>
+    <li>Sumber <strong>Existing</strong> untuk barang yang sudah ada. Sumber <strong>Pembelian</strong> membutuhkan nomor, tanggal, dan uraian permintaan. Surat permintaan dapat diunduh dari halaman asset.</li>
+    <li>Asset pembelian berstatus Requested sampai ditandai tersedia. Hanya asset <strong>Available</strong> yang dapat ditugaskan ke project.</li>
+</ol>
+<p>Impor: unduh template Excel, isi, lalu unggah lewat <strong>Import Excel/CSV</strong>. Kode yang sudah ada diperbarui (termasuk kondisi dan tahun). Kode baru ditambahkan. <strong>Export Excel</strong> mengunduh seluruh master. CSV dengan pemisah titik koma juga diterima. File <code>.xls</code> lama perlu disimpan ulang sebagai <code>.xlsx</code>.</p>
+<h2>Memakai asset di project</h2>
+<p>Menugaskan, mengubah penanggung jawab, dan mengembalikan: <strong>Superadmin</strong> dan <strong>Project Admin</strong>. Project harus <strong>ACTIVE</strong>.</p>
+<ol>
+    <li>Tab <strong>Assets</strong> pada project → pilih asset yang Available.</li>
+    <li>Isi penanggung jawab: nama dan jabatan. Simpan. Status asset menjadi <strong>In Use</strong>, dan muncul di project ini.</li>
+    <li>Selama masih dipakai, nama dan jabatan penanggung jawab dapat diubah.</li>
+    <li>Saat dikembalikan, lepas asset dari project. Status kembali Available dan riwayat pemakaian tetap tercatat di halaman asset.</li>
+</ol>
+
+<h1>13. Man Power</h1>
+<p>Master man power adalah daftar tenaga kerja: kode (otomatis <code>MP-001</code>, <code>MP-002</code>, …), nama, posisi, upah harian, telepon, dan status aktif. Upah di master adalah nilai bawaan; di project boleh diubah.</p>
+<figure>
+    <img src="img/13-master-manpower.jpg" alt="Master man power">
+    <figcaption>Master man power, termasuk impor Excel.</figcaption>
+</figure>
+<p>Melihat master dan tab project: semua peran kecuali <strong>Project / Site</strong>. Mengelola master dan menempatkan ke project: <strong>Superadmin</strong> dan <strong>Project Admin</strong>. Mencatat kasbon dan pelunasan: <strong>Superadmin</strong>, <strong>Project Admin</strong>, dan <strong>Finance</strong>.</p>
+<h2>Impor master</h2>
+<ol>
+    <li>Unduh template Excel.</li>
+    <li>Kosongkan kode untuk tenaga baru (kode diisi aplikasi). Isi kode yang sudah ada untuk memperbarui data orang itu.</li>
+    <li>Upah boleh ditulis <code>150000</code>, <code>150.000</code>, atau <code>Rp 150.000</code>. Nomor telepon tetap teks, jadi nol di depan tidak hilang.</li>
+    <li>Unggah file. Jika ada baris yang salah, seluruh file dibatalkan dan tidak ada yang tersimpan.</li>
+</ol>
+<h2>Di dalam project</h2>
+<figure>
+    <img src="img/10-manpower.jpg" alt="Tab man power project">
+    <figcaption>Tab Man Power: hari kerja, total upah, dan saldo kasbon.</figcaption>
+</figure>
+<ol>
+    <li>Project harus <strong>ACTIVE</strong>. Tab <strong>Man Power</strong> → pilih tenaga → sesuaikan posisi dan upah harian bila perlu → isi jumlah hari (bilangan bulat). Total = hari × upah harian.</li>
+    <li>Catat <strong>Kasbon</strong> atau <strong>Pelunasan</strong>. Nilainya tidak boleh melebihi sisa upah yang belum dibayar. Uang yang sudah dibayar ini masuk ke biaya aktual project.</li>
+    <li>Upah tidak dapat diturunkan sampai di bawah jumlah yang sudah dibayarkan.</li>
+    <li>Transaksi yang salah tidak dihapus. Batalkan dan isi alasannya. Status menjadi Dibatalkan.</li>
+    <li>Pada project <strong>COMPLETED</strong>, tenaga baru tidak dapat ditambahkan, tetapi kasbon dan pelunasan tenaga yang sudah ada masih dapat dicatat.</li>
+</ol>
+
+<h1>14. Laporan</h1>
+<h2>Laporan satu project</h2>
+<figure>
+    <img src="img/11-laporan.jpg" alt="Laporan project">
+    <figcaption>Tab Laporan. Pilih bagian, lalu cetak atau unduh.</figcaption>
+</figure>
+<p>Tab <strong>Laporan</strong> punya bagian: Ringkasan, Progress, Permintaan &amp; Pembelian, Biaya vs BOQ, Pembayaran, Penagihan Client, Aset Project, dan Dokumen. Biaya aktual dibanding anggaran BOQ per item, dan mencakup man power. Gunakan cetak untuk kertas, atau unduh berkas untuk diolah di luar aplikasi.</p>
+<h2>Laporan seluruh aplikasi</h2>
+<figure>
+    <img src="img/14-reports.jpg" alt="Menu Reports">
+    <figcaption>Menu Reports: project, keuangan, progress, asset, dan variance.</figcaption>
+</figure>
+<p>Menu <strong>Reports</strong> merangkum semua project: daftar project, keuangan, progress, asset, dan <strong>variance</strong>. Variance membandingkan biaya aktual dengan nilai BOQ:</p>
+<ul>
+    <li><strong>Normal</strong> — aktual masih di bawah ambang peringatan.</li>
+    <li><strong>Mendekati</strong> — aktual sudah mendekati nilai BOQ.</li>
+    <li><strong>Over Budget</strong> — aktual melewati nilai BOQ.</li>
+</ul>
+<p>Tiap laporan dapat diunduh sebagai CSV lewat tombol ekspor di halaman itu.</p>
+
+<h1>15. Pengguna</h1>
+<p>Hanya <strong>Superadmin</strong>. Menu <strong>Users</strong> menampilkan setiap akun dan perannya.</p>
+<figure>
+    <img src="img/15-users.jpg" alt="Daftar pengguna">
+    <figcaption>Ganti peran lewat daftar di kolom Role, lalu simpan.</figcaption>
+</figure>
+<ol>
+    <li>Pastikan orang tersebut sudah punya akun (email terdaftar).</li>
+    <li>Pada barisnya, pilih peran: Superadmin, Project Admin, BOQ / Cost Control, Approver, Finance, atau Project / Site.</li>
+    <li>Simpan. Hak akses berubah pada kunjungan berikutnya orang itu. Satu akun punya satu peran.</li>
+</ol>
+<p>Pengguna mengganti kata sandinya sendiri lewat profil. Superadmin yang lupa kata sandi satu-satunya akun admin perlu pemulihan lewat email <strong>Lupa password?</strong>.</p>
+
+<h1>16. Panduan per peran</h1>
+<p>Setiap bagian di bawah adalah urutan kerja harian peran itu. Langkah kliknya ada di bab yang disebut.</p>
+
+<h2>Superadmin</h2>
+<p>Anda melihat semua menu, termasuk Users, dan dapat melakukan semua langkah dalam buku ini.</p>
+<ol>
+    <li>Buat pengguna dan tentukan perannya (bab 15) sebelum orang lain mulai bekerja.</li>
+    <li>Buat project, isi nilai kontrak, lalu <strong>Activate Project</strong> (bab 4).</li>
+    <li>Awasi kotak Next Action dan angka pada Approval BOQ.</li>
+    <li>Cadangkan project lewat <strong>Export Project</strong> sebelum perubahan besar. Impor hanya dipakai untuk memindahkan atau memulihkan data.</li>
+    <li>Hapus project hanya jika memang tidak terpakai. Ketik kodenya untuk konfirmasi. Tindakan ini tidak untuk memperbaiki salah input kecil.</li>
+</ol>
+
+<h2>Project Admin</h2>
+<p>Anda mengurus project dari pembuatan sampai penagihan diajukan, kecuali persetujuan BOQ dan pencairan uang.</p>
+<ul>
+    <li><strong>Anda kerjakan:</strong> buat dan ubah project, aktifkan project, susun dan ajukan BOQ, perbaiki revisi, tempatkan asset plus penanggung jawab, kelola master asset dan man power, tempatkan tenaga, catat kasbon dan pelunasan, buat pengadaan, susun termin, buat dan submit penagihan, kelola dokumen.</li>
+    <li><strong>Anda tidak kerjakan:</strong> menyetujui BOQ (itu Approver), membuat rencana payment dan mencairkannya (itu Finance), mengirim penagihan dan mencatat uang klien masuk (itu Finance), mengatur pengguna, mengekspor atau menghapus project.</li>
+    <li><strong>Urutan yang paling sering:</strong> aktifkan project → susun BOQ (bab 5) → submit → setelah APPROVED, tempatkan asset dan man power → ajukan pengadaan bila perlu → buat termin saat nilai kontrak sudah ada.</li>
+</ul>
+
+<h2>BOQ / Cost Control</h2>
+<p>Fokus Anda adalah angka BOQ dan pembandingannya dengan biaya.</p>
+<ul>
+    <li><strong>Anda kerjakan:</strong> membuat, mengubah, dan mengajukan BOQ; memperbaiki item saat status REVISION REQUIRED; mengalokasikan pengadaan ke item BOQ; membaca payment, progress, asset, penagihan, dokumen, man power, dan laporan.</li>
+    <li><strong>Anda tidak kerjakan:</strong> membuat project, menyetujui BOQ, mencairkan payment, mengirim tagihan, mengubah progress, menambah asset atau tenaga, mencatat kasbon.</li>
+    <li><strong>Urutan yang paling sering:</strong> buka tab BOQ → susun atau impor Excel (bab 5) → Submit BOQ → jika kembali REVISION REQUIRED, perbaiki lalu Submit BOQ Again → bandingkan biaya di tab Laporan, bagian Biaya vs BOQ, dan di menu Reports bagian variance.</li>
+</ul>
+
+<h2>Approver</h2>
+<p>Anda memutuskan, bukan menyusun.</p>
+<ul>
+    <li><strong>Anda kerjakan:</strong> meninjau dan menyetujui BOQ, atau meminta revisi dengan catatan; menyetujui permintaan pengadaan; melihat penagihan, pembayaran klien, dan mengunduh dokumen.</li>
+    <li><strong>Anda tidak kerjakan:</strong> mengubah isi BOQ, membuat project, membayar, mengubah progress, mengirim tagihan, menambah tenaga atau asset.</li>
+    <li><strong>Urutan yang paling sering:</strong> lihat angka di menu Approval BOQ (bab 6) → Review &amp; Approve → setujui, atau tulis revisi yang spesifik (item dan alasannya) supaya penyusun tahu apa yang harus diubah. Lakukan hal yang sama untuk pengadaan yang berstatus Diajukan.</li>
+</ul>
+
+<h2>Finance</h2>
+<p>Anda mengurus uang keluar dan uang masuk.</p>
+<ul>
+    <li><strong>Anda kerjakan:</strong> rencana payment dan pencairannya, pembayaran serta pembatalan pengadaan, termin, penagihan (buat, submit, kirim, batalkan), pembayaran klien, dokumen, kasbon dan pelunasan man power, semua laporan.</li>
+    <li><strong>Anda tidak kerjakan:</strong> membuat project atau BOQ, menyetujui BOQ, mengubah progress, menambah tenaga ke master atau ke project, mengubah master asset, mengatur pengguna.</li>
+    <li><strong>Urutan yang paling sering:</strong> setelah BOQ APPROVED, buat rencana di tab Payment (bab 7) → cairkan saat jatuh tempo dan simpan bukti → bayar pengadaan yang sudah Disetujui → kirim penagihan yang sudah Ready (bab 10) → catat uang yang diterima. Batalkan dengan alasan jika ada salah catat; jangan menghapus.</li>
+</ul>
+
+<h2>Project / Site</h2>
+<p>Anda bekerja di lapangan: progress dan permintaan barang.</p>
+<ul>
+    <li><strong>Menu Anda:</strong> Dashboard, Projects, Assets (lihat), dan Reports. Tidak ada Man Power, Users, atau Approval BOQ.</li>
+    <li><strong>Tab yang tidak ada:</strong> Man Power, Penagihan, dan Dokumen.</li>
+    <li><strong>Anda kerjakan:</strong> memperbarui progress item (bab 8), membuat dan mengajukan permintaan BMHP, aset, atau sewa, serta mengalokasikannya ke item BOQ (bab 9).</li>
+    <li><strong>Anda tidak kerjakan:</strong> mengubah BOQ, menyetujui, membayar, menagih klien, menempatkan asset, atau mencatat upah.</li>
+    <li><strong>Urutan yang paling sering:</strong> buka project → Progress → isi persen item yang dikerjakan hari itu. Jika bahan atau alat kurang, buat permintaan di tab Pengadaan dan ajukan, supaya Approver dan Finance dapat menindaklanjuti.</li>
+</ul>
+
+<h1>17. Arti status</h1>
+<table>
+    <thead><tr><th>Bagian</th><th>Status yang akan Anda lihat</th></tr></thead>
+    <tbody>
+        <tr><td>Project</td><td>DRAFT → ACTIVE. COMPLETED adalah project yang sudah selesai: tenaga baru tidak ditambahkan, pembayaran tenaga yang ada masih bisa dicatat.</td></tr>
+        <tr><td>BOQ</td><td>DRAFT → WAITING APPROVAL → APPROVED. REVISION REQUIRED berarti harus diperbaiki lalu diajukan lagi.</td></tr>
+        <tr><td>Rencana bayar</td><td>PLANNED → READY TO PAY → PAID.</td></tr>
+        <tr><td>Pembayaran keluar</td><td>Paid, atau Void jika dibatalkan.</td></tr>
+        <tr><td>Pengadaan</td><td>Draft → Diajukan → Disetujui → Dibayar. Dibatalkan menutup permintaan.</td></tr>
+        <tr><td>Termin</td><td>Not Ready → Ready → Partially Billed → Fully Billed, lalu Partially Paid → Paid.</td></tr>
+        <tr><td>Penagihan</td><td>Draft → Submitted → Sent → Partially Paid → Paid. Cancelled jika dibatalkan. Yang dihitung tertagih adalah yang sudah Sent.</td></tr>
+        <tr><td>Dokumen</td><td>Draft → Submitted → Under Review → Approved. Revision Required lalu Resubmitted jika harus diperbaiki. Cancelled jika tidak dipakai.</td></tr>
+        <tr><td>Asset</td><td>Requested → Available → In Use. Inactive jika tidak dipakai. Kondisi: Baik, Cukup Baik, Kurang Baik, Rusak.</td></tr>
+        <tr><td>Kasbon / pelunasan</td><td>Dibayar, atau Dibatalkan beserta alasannya.</td></tr>
+        <tr><td>Variance</td><td>Normal, Mendekati, Over Budget.</td></tr>
+    </tbody>
+</table>
+
+<h1>18. Hal yang sering ditanyakan</h1>
+<h3>Tombol yang dijelaskan di buku ini tidak ada di layar saya.</h3>
+<p>Peran Anda tidak memiliki langkah itu. Lihat bab 16. Jika seharusnya Anda memilikinya, minta Superadmin memeriksa peran di menu Users.</p>
+<h3>Impor Excel ditolak.</h3>
+<p>Pakai file <code>.xlsx</code> atau CSV, bukan <code>.xls</code>. Jangan mengubah nama kolom di baris pertama. Untuk BOQ, kolom kode item tidak ada di template dan tidak perlu ditambahkan. Jika satu baris salah, baca pesan “Baris N” dan perbaiki baris itu; untuk man power, tidak ada data yang tersimpan sampai seluruh file benar.</p>
+<h3>Kode item atau kode tenaga tidak bisa diketik.</h3>
+<p>Memang dibuat otomatis. Di BOQ, setiap COGS punya urutan ITEM-001 sendiri. Di man power, kode baru adalah MP-00n berikutnya. Isi kode hanya saat Anda memang ingin memperbarui data yang sudah ada.</p>
+<h3>Progress tidak bisa disimpan.</h3>
+<p>BOQ item itu harus sudah APPROVED, dan hanya Project / Site serta Superadmin yang dapat menyimpan. Payment belum lunas tidak menghalangi progress.</p>
+<h3>Termin atau penagihan tidak bisa dibuat.</h3>
+<p>Isi nilai kontrak lewat Edit Project. Total termin tidak boleh melebihi nilai kontrak, dan termin harus Ready.</p>
+<h3>Angka di Penagihan tidak mengubah BOQ.</h3>
+<p>Benar. Penagihan adalah tagihan ke klien. Biaya project ada di Payment, pengadaan, dan man power, lalu dibandingkan di laporan Biaya vs BOQ.</p>
+<h3>Salah mencatat pembayaran atau kasbon.</h3>
+<p>Batalkan transaksi itu dan isi alasan. Jangan meminta data dihapus: riwayat tetap diperlukan untuk laporan.</p>
+<h3>Kontrak hampir habis.</h3>
+<p>Dashboard menampilkan kartu Peringatan Kontrak, dengan tanda “Lewat” atau “Sisa … hari”. Buka project tersebut dan sesuaikan target selesai bila tanggalnya berubah.</p>
+
+<p class="muted" style="margin-top:18px">Akhir buku panduan. Pertanyaan yang tidak terjawab di sini dapat ditanyakan kepada Superadmin aplikasi.</p>
+
+</body>
+</html>

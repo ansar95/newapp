@@ -60,7 +60,7 @@
 
     <div>
         <x-input-label :for="$idPrefix.'due_date'" x-text="trigger === '{{ $dateTrigger }}' ? 'Target Tanggal *' : 'Target Tanggal'" value="Target Tanggal" />
-        <x-text-input :id="$idPrefix.'due_date'" type="date" name="due_date" class="mt-1 block w-full text-sm"
+        <x-date-input :id="$idPrefix.'due_date'" name="due_date" class="mt-1 block w-full text-sm"
                       x-bind:required="trigger === '{{ $dateTrigger }}'"
                       :value="$value('due_date', $term?->due_date?->format('Y-m-d'))" />
         @if ($useOld) <x-input-error :messages="$errors->get('due_date')" class="mt-1" /> @endif

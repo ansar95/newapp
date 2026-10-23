@@ -11,6 +11,7 @@ enum ProjectDocumentStatus: string
     case Resubmitted = 'RESUBMITTED';
     case Approved = 'APPROVED';
     case Cancelled = 'CANCELLED';
+    case Archived = 'ARCHIVED';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum ProjectDocumentStatus: string
             self::Resubmitted => 'Resubmitted',
             self::Approved => 'Approved',
             self::Cancelled => 'Cancelled',
+            self::Archived => 'Arsip',
         };
     }
 
@@ -36,7 +38,7 @@ enum ProjectDocumentStatus: string
             self::UnderReview => [self::Approved, self::RevisionRequired],
             self::RevisionRequired => [self::Resubmitted, self::Cancelled],
             self::Resubmitted => [self::UnderReview],
-            self::Approved, self::Cancelled => [],
+            self::Approved, self::Cancelled, self::Archived => [],
         };
     }
 
@@ -71,6 +73,6 @@ enum ProjectDocumentStatus: string
      */
     public function acceptsNewVersion(): bool
     {
-        return in_array($this, [self::Draft, self::RevisionRequired], true);
+        return in_array($this, [self::Draft, self::RevisionRequired, self::Archived], true);
     }
 }

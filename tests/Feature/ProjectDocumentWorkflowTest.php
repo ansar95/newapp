@@ -47,8 +47,7 @@ class ProjectDocumentWorkflowTest extends TestCase
 
         $response = $this->actingAs($projectAdmin)
             ->post(route('project-documents.store', $this->project), [
-                'document_type_id' => $this->billingDocumentType()->id,
-                'client_billing_id' => $this->billing->id,
+                'type_label' => 'Kontrak',
                 'document_title' => 'Dokumen Penagihan Termin 1',
                 'file' => $this->fakePdf('../Invoice <Termin> 1.pdf'),
             ])
@@ -58,7 +57,10 @@ class ProjectDocumentWorkflowTest extends TestCase
         $response->assertRedirect(route('project-documents.show', $document));
 
         $this->assertSame('DOC-0001', $document->document_number);
-        $this->assertSame(ProjectDocumentStatus::Draft, $document->current_status);
+        $this->assertSame('Kontrak', $document->type_label);
+        $this->assertNull($document->reference_type);
+        $this->assertNull($document->reference_id);
+        $this->assertSame(ProjectDocumentStatus::Archived, $document->current_status);
         $this->assertSame(1, $document->current_version);
         $this->assertSame($projectAdmin->id, $document->created_by);
 

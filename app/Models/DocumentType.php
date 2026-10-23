@@ -21,6 +21,8 @@ class DocumentType extends Model
 {
     public const BILLING = 'DOC-BILLING';
 
+    public const GENERAL = 'DOC-GENERAL';
+
     /** @use HasFactory<DocumentTypeFactory> */
     use HasFactory;
 

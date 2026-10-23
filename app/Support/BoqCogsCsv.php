@@ -22,7 +22,8 @@ class BoqCogsCsv
         'unit',
         'material_price',
         'service_price',
-        'item_notes',
+        'level_2',
+        'level_3',
     ];
 
     /**
@@ -39,7 +40,8 @@ class BoqCogsCsv
         'unit',
         'material_price',
         'service_price',
-        'item_notes',
+        'level_2',
+        'level_3',
     ];
 
     /**
@@ -49,9 +51,9 @@ class BoqCogsCsv
     {
         return [
             self::TEMPLATE_HEADERS,
-            ['Engineering', 'Design works', 'Design Drawing', '', 1, 'ls', 0, 2000000, ''],
-            ['Engineering', 'Design works', 'Structural Calculation', '', 1, 'ls', 0, 3000000, ''],
-            ['Installation', 'Site works', 'Cable Tray', '', 10, 'm', 75000, 25000, 'Termasuk aksesoris'],
+            ['Engineering', 'Design works', 'Design Drawing', '', 1, 'ls', 0, 2000000, '', ''],
+            ['Engineering', 'Design works', 'Structural Calculation', '', 1, 'ls', 0, 3000000, '', ''],
+            ['Installation', 'Site works', 'Cable Tray', '', 10, 'm', 75000, 25000, 'Termasuk aksesoris', ''],
         ];
     }
 
@@ -77,6 +79,7 @@ class BoqCogsCsv
                     self::formatNumber($item->material_unit_price),
                     self::formatNumber($item->service_unit_price),
                     (string) ($item->notes ?? ''),
+                    (string) ($item->level_3 ?? ''),
                 ];
             }
         }
@@ -95,7 +98,8 @@ class BoqCogsCsv
      *     unit: string,
      *     material_price: string,
      *     service_price: string,
-     *     item_notes: string|null,
+     *     level_2: string|null,
+     *     level_3: string|null,
      *     _line: int
      * }>
      */
@@ -155,8 +159,9 @@ class BoqCogsCsv
                 'service_price' => isset($index['service_price'])
                     ? SpreadsheetFile::normalizeNumber((string) ($data[$index['service_price']] ?? ''))
                     : '',
-                'item_notes' => isset($index['item_notes'])
-                    ? self::nullableTrim($data[$index['item_notes']] ?? null)
+                'level_2' => self::levelValue($data, $index, 'level_2', 'item_notes'),
+                'level_3' => isset($index['level_3'])
+                    ? self::nullableTrim($data[$index['level_3']] ?? null)
                     : null,
                 '_line' => $offset + 2,
             ]);
@@ -198,6 +203,23 @@ class BoqCogsCsv
         $value = preg_replace('/^\xEF\xBB\xBF/', '', $value) ?? $value;
 
         return strtolower(trim($value));
+    }
+
+    /**
+     * @param  list<string|null>  $data
+     * @param  array<string, int>  $index
+     */
+    private static function levelValue(array $data, array $index, string $column, string $legacyColumn): ?string
+    {
+        if (isset($index[$column])) {
+            return self::nullableTrim($data[$index[$column]] ?? null);
+        }
+
+        if (isset($index[$legacyColumn])) {
+            return self::nullableTrim($data[$index[$legacyColumn]] ?? null);
+        }
+
+        return null;
     }
 
     private static function nullableTrim(mixed $value): ?string
