@@ -17,8 +17,11 @@ use App\Models\ProgressSnapshot;
 use App\Models\Project;
 use App\Models\SCurveBaseline;
 use App\Models\User;
+use App\Support\SCurvePlanSheet;
 use App\Support\SCurveSeries;
+use App\Support\SimpleXlsx;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\Support\BuildsWorkflowFixtures;
 use Tests\TestCase;
 
@@ -252,6 +255,14 @@ class SCurveTest extends TestCase
             ])
             ->assertForbidden();
 
+        $this->actingAs($site)
+            ->get(route('projects.s-curve.plan.template', $project))
+            ->assertForbidden();
+
+        $this->actingAs($site)
+            ->post(route('projects.s-curve.plan.import', $project), ['kind' => 'initial'])
+            ->assertForbidden();
+
         $this->actingAs($admin)
             ->get(route('projects.show', $project))
             ->assertOk()
@@ -269,6 +280,7 @@ class SCurveTest extends TestCase
             ->get(route('projects.s-curve.show', $project))
             ->assertOk()
             ->assertSee('Tetapkan rencana awal')
+            ->assertSee('Download template Excel')
             ->assertSee($boq->cogs->first()->items->first()->name);
 
         $this->actingAs($admin)
@@ -341,6 +353,83 @@ class SCurveTest extends TestCase
         $this->assertNull($points['2026-10-05']['actual']);
         $this->assertSame($project->fresh()->progressPercentage(), $points['2026-10-19']['actual']);
         $this->assertSame(100.0, $points['2026-10-19']['p0']);
+    }
+
+    public function test_excel_template_imports_item_dates_for_the_plan(): void
+    {
+        $actor = $this->makeSuperadmin();
+        $project = $this->datedProject($actor, 'PRJ-XLS');
+        $boq = $this->makeDraftBoq($actor, $project, [[
+            'code' => 'COGS-001',
+            'name' => 'Pekerjaan',
+            'description' => 'Pekerjaan',
+            'sort_order' => 1,
+            'items' => [
+                ['code' => 'ITEM-A', 'name' => 'Pekerjaan A', 'quantity' => 1, 'unit' => 'ls', 'unit_price' => 5000000, 'sort_order' => 1],
+                ['code' => 'ITEM-B', 'name' => 'Pekerjaan B', 'quantity' => 1, 'unit' => 'ls', 'unit_price' => 5000000, 'sort_order' => 2],
+            ],
+        ]], 'BOQ-XLS');
+        app(SubmitBOQ::class)->handle($actor, $boq);
+        app(ConfirmBOQ::class)->handle($actor, $boq->fresh(), 'Approved');
+
+        $this->get(route('projects.s-curve.plan.template', $project))->assertRedirect(route('login'));
+
+        $download = $this->actingAs($actor)->get(route('projects.s-curve.plan.template', $project));
+        $download->assertOk();
+        $download->assertHeader('content-type', SimpleXlsx::MIME);
+        $rows = SimpleXlsx::readString($download->streamedContent());
+
+        $this->assertSame(SCurvePlanSheet::HEADERS, $rows[0]);
+        $this->assertSame(['ITEM-A', 'Pekerjaan', 'Pekerjaan A'], $rows[1]);
+        $this->assertSame(['ITEM-B', 'Pekerjaan', 'Pekerjaan B'], $rows[2]);
+
+        $this->actingAs($actor)
+            ->post(route('projects.s-curve.plan.import', $project), [
+                'kind' => 'initial',
+                'return_to' => 'project',
+                'file' => UploadedFile::fake()->createWithContent('rencana.xlsx', SimpleXlsx::write([
+                    ['item_code'],
+                ])),
+            ])
+            ->assertSessionHasErrors(['file' => 'Kolom wajib hilang: planned_start. Gunakan template yang disediakan.']);
+
+        $this->actingAs($actor)
+            ->post(route('projects.s-curve.plan.import', $project), [
+                'kind' => 'initial',
+                'file' => UploadedFile::fake()->createWithContent('rencana.xlsx', SimpleXlsx::write([
+                    SCurvePlanSheet::HEADERS,
+                    ['ITEM-X', 'Pekerjaan', 'Lain', '05/10/2026', '11/10/2026'],
+                ])),
+            ])
+            ->assertSessionHasErrors(['file' => 'Baris 2: kode item ITEM-X tidak ada pada BOQ approved.']);
+
+        $rows[1][3] = '05/10/2026';
+        $rows[1][4] = '11/10/2026';
+        $rows[2][3] = '12/10/2026';
+        $rows[2][4] = '25/10/2026';
+
+        $this->actingAs($actor)
+            ->post(route('projects.s-curve.plan.import', $project), [
+                'kind' => 'initial',
+                'return_to' => 'project',
+                'file' => UploadedFile::fake()->createWithContent('rencana.xlsx', SimpleXlsx::write($rows)),
+            ])
+            ->assertRedirect(route('projects.s-curve.show', $project))
+            ->assertSessionHasNoErrors();
+
+        $baseline = SCurveBaseline::query()->where('project_id', $project->id)->sole();
+        $planned = $baseline->periods->values()->map(fn ($period) => (float) $period->planned_percent)->all();
+
+        $this->assertSame(SCurveBaselineStatus::Established, $baseline->status);
+        $this->assertCount(3, $planned);
+        $this->assertEqualsWithDelta(100, array_sum($planned), 0.05);
+
+        $again = SimpleXlsx::readString($this->actingAs($actor)
+            ->get(route('projects.s-curve.plan.template', $project))
+            ->streamedContent());
+
+        $this->assertSame('05/10/2026', $again[1][3]);
+        $this->assertSame('25/10/2026', $again[2][4]);
     }
 
     public function test_dashboard_keeps_existing_sections_and_adds_one_project_curve(): void

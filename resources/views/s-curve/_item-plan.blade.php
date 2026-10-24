@@ -44,6 +44,23 @@
     @endif
 
     @if ($editable)
+        <div class="mt-4 flex flex-col gap-3 rounded-lg border border-maroon-100 bg-maroon-50 p-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <a href="{{ route('projects.s-curve.plan.template', $project) }}" class="text-sm font-medium text-maroon-900 underline">Download template Excel</a>
+                <p class="mt-1 text-xs text-maroon-700">Isi tanggal mulai dan selesai (dd/mm/yyyy) untuk setiap item, lalu unggah file .xlsx-nya. Jangan mengubah item_code. Bobot tetap dihitung dari BOQ.</p>
+            </div>
+            <form method="POST" action="{{ route('projects.s-curve.plan.import', $project) }}" enctype="multipart/form-data" class="flex flex-col gap-2 sm:flex-row sm:items-end">
+                @csrf
+                <input type="hidden" name="kind" value="{{ $mode }}">
+                <input type="hidden" name="return_to" value="{{ $returnTo }}">
+                <div>
+                    <x-input-label for="kurva-plan-file" value="File rencana" />
+                    <input id="kurva-plan-file" type="file" name="file" accept=".xlsx,.csv,.txt" required class="mt-1 block w-full text-sm text-maroon-900">
+                    <x-input-error :messages="$errors->get('file')" class="mt-1" />
+                </div>
+                <button type="submit" class="rounded-md border border-maroon-300 bg-white px-4 py-2 text-sm font-medium text-maroon-900 hover:bg-maroon-50">Impor rencana</button>
+            </form>
+        </div>
         <form method="POST" action="{{ route('projects.s-curve.plan.store', $project) }}" class="mt-4">
             @csrf
             <input type="hidden" name="kind" value="{{ $mode }}">

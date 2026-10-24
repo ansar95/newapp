@@ -187,6 +187,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/projects/{project}/kurva-s', [SCurveController::class, 'show'])->name('projects.s-curve.show');
     Route::post('/projects/{project}/kurva-s/baselines', [SCurveController::class, 'store'])->name('projects.s-curve.baselines.store');
+    Route::get('/projects/{project}/kurva-s/rencana/template', [SCurveController::class, 'planTemplate'])->name('projects.s-curve.plan.template');
+    Route::post('/projects/{project}/kurva-s/rencana/import', [SCurveController::class, 'importPlan'])->name('projects.s-curve.plan.import');
     Route::post('/projects/{project}/kurva-s/rencana', [SCurveController::class, 'storePlan'])->name('projects.s-curve.plan.store');
     Route::put('/s-curve-baselines/{baseline}', [SCurveController::class, 'update'])->name('s-curve-baselines.update');
     Route::post('/s-curve-baselines/{baseline}/import', [SCurveController::class, 'import'])->name('s-curve-baselines.import');

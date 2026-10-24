@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\SCurve\EstablishSCurveFromItems;
 use App\Actions\SCurve\ImportSCurveBaseline;
+use App\Actions\SCurve\ImportSCurveItemPlan;
 use App\Actions\SCurve\PrepareSCurveBaseline;
 use App\Actions\SCurve\SaveSCurveBaseline;
 use App\Enums\SCurveGranularity;
@@ -11,6 +12,7 @@ use App\Enums\SCurveKind;
 use App\Models\Project;
 use App\Models\SCurveBaseline;
 use App\Support\ProjectDetailContext;
+use App\Support\SCurvePlanSheet;
 use App\Support\SCurveSeries;
 use App\Support\SpreadsheetFile;
 use Illuminate\Http\RedirectResponse;
@@ -120,6 +122,45 @@ class SCurveController extends Controller
         );
 
         return $this->redirectTo($request, $project, 'Rencana Kurva S ditetapkan dari tanggal item BOQ.');
+    }
+
+    public function planTemplate(Project $project): StreamedResponse
+    {
+        $this->authorize('view', $project);
+        $this->authorize('create', SCurveBaseline::class);
+
+        $code = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) $project->code) ?: 'project';
+
+        return SpreadsheetFile::download(
+            SCurvePlanSheet::rows($this->planItems($project)),
+            'kurva-s-rencana-'.$code.'.xlsx',
+            'Rencana',
+        );
+    }
+
+    public function importPlan(Request $request, Project $project, ImportSCurveItemPlan $import): RedirectResponse
+    {
+        $this->authorize('view', $project);
+        $this->authorize('create', SCurveBaseline::class);
+
+        $validated = $request->validate([
+            'kind' => ['required', Rule::enum(SCurveKind::class)],
+            'reason' => ['nullable', 'string', 'max:1000'],
+            'return_to' => ['nullable', 'in:menu,project'],
+        ], [
+            'kind.required' => 'Jenis rencana wajib dipilih.',
+            'reason.max' => 'Alasan maksimal 1000 karakter.',
+        ]);
+
+        $import->handle(
+            $request->user(),
+            $project,
+            $request->file('file'),
+            SCurveKind::from($validated['kind']),
+            $validated['reason'] ?? null,
+        );
+
+        return $this->redirectTo($request, $project, 'Rencana Kurva S diimpor dari template Excel.');
     }
 
     public function update(Request $request, SCurveBaseline $baseline, SaveSCurveBaseline $save): RedirectResponse

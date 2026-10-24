@@ -7,8 +7,16 @@ window.Alpine = Alpine;
 Alpine.data('dateInput', (initial = '') => ({
     iso: initial || '',
     text: '',
+    open: false,
+    cursor: '',
+    panelStyle: '',
+    calendarDays: [],
+    weekdayNames: ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'],
+    monthNames: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
     init() {
         this.applyIso(this.iso);
+        this.cursor = (this.iso || this.todayIso()).slice(0, 7);
+        this.refreshDays();
         this.$watch('iso', (value) => {
             if (document.activeElement === this.$refs.text) {
                 return;
@@ -17,6 +25,17 @@ Alpine.data('dateInput', (initial = '') => ({
             this.text = this.toDisplay(this.normalize(value));
         });
         this.$el.closest('form')?.addEventListener('submit', () => this.commitText(), true);
+        this._reposition = () => {
+            if (this.open) {
+                this.place();
+            }
+        };
+        window.addEventListener('scroll', this._reposition, true);
+        window.addEventListener('resize', this._reposition);
+    },
+    destroy() {
+        window.removeEventListener('scroll', this._reposition, true);
+        window.removeEventListener('resize', this._reposition);
     },
     mask() {
         if (this.text.includes('/')) {
@@ -61,17 +80,95 @@ Alpine.data('dateInput', (initial = '') => ({
         this.text = this.toDisplay(this.iso);
         this.$refs.text?.setCustomValidity('');
     },
-    openPicker() {
-        const picker = this.$refs.picker;
-
-        if (typeof picker.showPicker === 'function') {
-            picker.showPicker();
+    toggle() {
+        if (this.open) {
+            this.open = false;
 
             return;
         }
 
-        picker.focus();
-        picker.click();
+        this.cursor = (this.normalize(this.iso) || this.todayIso()).slice(0, 7);
+        this.refreshDays();
+        this.place();
+        this.open = true;
+    },
+    place() {
+        const rect = this.$refs.opener.getBoundingClientRect();
+        const width = 288;
+        const height = 320;
+        const left = Math.min(Math.max(8, rect.right - width), window.innerWidth - width - 8);
+        let top = rect.bottom + 4;
+
+        if (top + height > window.innerHeight) {
+            top = Math.max(8, rect.top - height - 4);
+        }
+
+        this.panelStyle = `top:${top}px;left:${left}px`;
+    },
+    shiftMonth(delta) {
+        const [year, month] = this.cursor.split('-').map(Number);
+        const next = new Date(year, month - 1 + delta, 1);
+
+        this.cursor = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+        this.refreshDays();
+    },
+    heading() {
+        const [year, month] = this.cursor.split('-').map(Number);
+
+        return `${this.monthNames[month - 1] ?? ''} ${year}`;
+    },
+    refreshDays() {
+        this.calendarDays = this.buildDays();
+    },
+    buildDays() {
+        if (! /^\d{4}-\d{2}$/.test(this.cursor)) {
+            return [];
+        }
+
+        const [year, month] = this.cursor.split('-').map(Number);
+        const first = new Date(year, month - 1, 1);
+        const offset = (first.getDay() + 6) % 7;
+        const start = new Date(year, month - 1, 1 - offset);
+        const today = this.todayIso();
+        const days = [];
+
+        for (let index = 0; index < 42; index++) {
+            const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
+            const iso = this.isoFromDate(date);
+
+            days.push({
+                iso,
+                label: date.getDate(),
+                inMonth: date.getMonth() === month - 1,
+                disabled: this.isDisabled(iso),
+                selected: iso === this.iso,
+                today: iso === today,
+            });
+        }
+
+        return days;
+    },
+    choose(iso) {
+        if (this.isDisabled(iso)) {
+            return;
+        }
+
+        this.applyIso(iso);
+        this.open = false;
+    },
+    minimum() {
+        return this.normalize(this.$refs.opener?.getAttribute('min') ?? '');
+    },
+    isDisabled(iso) {
+        const min = this.minimum();
+
+        return min !== '' && iso < min;
+    },
+    todayIso() {
+        return this.isoFromDate(new Date());
+    },
+    isoFromDate(date) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     },
     normalize(value) {
         const raw = String(value ?? '').trim();

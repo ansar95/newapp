@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 23 Okt 2026 pada 06.39
+-- Waktu pembuatan: 24 Okt 2026 pada 02.32
 -- Versi server: 8.4.3
 -- Versi PHP: 8.3.16
 
@@ -576,7 +576,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (42, '2026_10_22_121135_create_s_curve_periods_table', 17),
 (43, '2026_10_22_121136_create_progress_snapshots_table', 17),
 (44, '2026_10_23_003056_create_s_curve_item_schedules_table', 18),
-(45, '2026_10_23_005030_add_level_3_to_boq_items_table', 19);
+(45, '2026_10_23_005030_add_level_3_to_boq_items_table', 19),
+(46, '2026_10_23_075957_add_type_label_to_project_documents_table', 20);
 
 -- --------------------------------------------------------
 
@@ -946,6 +947,7 @@ CREATE TABLE `project_documents` (
   `id` bigint UNSIGNED NOT NULL,
   `project_id` bigint UNSIGNED NOT NULL,
   `document_type_id` bigint UNSIGNED NOT NULL,
+  `type_label` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `reference_type` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `reference_id` bigint UNSIGNED DEFAULT NULL,
   `document_number` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -969,10 +971,10 @@ CREATE TABLE `project_documents` (
 -- Dumping data untuk tabel `project_documents`
 --
 
-INSERT INTO `project_documents` (`id`, `project_id`, `document_type_id`, `reference_type`, `reference_id`, `document_number`, `document_title`, `description`, `current_status`, `current_version`, `approved_by`, `approved_at`, `approval_notes`, `approved_version`, `cancelled_by`, `cancelled_at`, `cancel_reason`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 5, 1, 'BILLING', 1, 'DOC-0001', 'Dokumen Penagihan Termin 1 — Uang Muka', NULL, 'APPROVED', 2, 1, '2026-09-01 02:05:01', 'Disetujui client via email.', 2, NULL, NULL, NULL, 1, '2026-08-22 02:05:01', '2026-09-01 02:05:01'),
-(2, 5, 1, 'BILLING', 2, 'DOC-0002', 'Dokumen Penagihan Termin 2 — Progress 50%', NULL, 'APPROVED', 1, 1, '2026-10-06 04:21:03', NULL, 1, NULL, NULL, NULL, 1, '2026-09-27 02:05:01', '2026-10-06 04:21:03'),
-(3, 5, 1, 'BILLING', 4, 'DOC-0003', 'Dokumen Penagihan Termin 3 — Progress 100%', NULL, 'APPROVED', 1, 1, '2026-10-06 22:48:34', 'telahdiapprove oleh client', 1, NULL, NULL, NULL, 1, '2026-10-06 22:46:50', '2026-10-06 22:48:34');
+INSERT INTO `project_documents` (`id`, `project_id`, `document_type_id`, `type_label`, `reference_type`, `reference_id`, `document_number`, `document_title`, `description`, `current_status`, `current_version`, `approved_by`, `approved_at`, `approval_notes`, `approved_version`, `cancelled_by`, `cancelled_at`, `cancel_reason`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 5, 1, NULL, 'BILLING', 1, 'DOC-0001', 'Dokumen Penagihan Termin 1 — Uang Muka', NULL, 'APPROVED', 2, 1, '2026-09-01 02:05:01', 'Disetujui client via email.', 2, NULL, NULL, NULL, 1, '2026-08-22 02:05:01', '2026-09-01 02:05:01'),
+(2, 5, 1, NULL, 'BILLING', 2, 'DOC-0002', 'Dokumen Penagihan Termin 2 — Progress 50%', NULL, 'APPROVED', 1, 1, '2026-10-06 04:21:03', NULL, 1, NULL, NULL, NULL, 1, '2026-09-27 02:05:01', '2026-10-06 04:21:03'),
+(3, 5, 1, NULL, 'BILLING', 4, 'DOC-0003', 'Dokumen Penagihan Termin 3 — Progress 100%', NULL, 'APPROVED', 1, 1, '2026-10-06 22:48:34', 'telahdiapprove oleh client', 1, NULL, NULL, NULL, 1, '2026-10-06 22:46:50', '2026-10-06 22:48:34');
 
 -- --------------------------------------------------------
 
@@ -1124,8 +1126,7 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
-('5v6AnlIcNw0ntGJqXWk9206TOsu8x96xRiIWk2Yn', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36', 'eyJfdG9rZW4iOiJYcG80VXgwYVlQQUpEb0VrMDVTeUNrT3ZKbmRQZDJwWjQ0QTZpeUt0IiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cL2xvY2FsaG9zdDo4MDAwXC9wcm9qZWN0c1wvMlwva3VydmEtcyIsInJvdXRlIjoicHJvamVjdHMucy1jdXJ2ZS5zaG93In0sIl9mbGFzaCI6eyJvbGQiOltdLCJuZXciOltdfSwibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiOjEsInBhc3N3b3JkX2hhc2hfd2ViIjoiY2UzZmJhOGJmMDJmNjI4YTUyZGY5ODQ0Yzc1N2RlMTkxNWM0ODc0YTA5N2M4NWIxOGRmMTI4MzNlZWJlOGE3YSJ9', 1792733522),
-('ca3QW98FX0YK8Uxi0jLHs50mSOEAE5yjEVHhDZFN', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36', 'eyJfdG9rZW4iOiJ0ckRveVJSTzRkZGZqOVc0T1pWVUdLUWFxUWdkSnRBU2VINWxkb3FVIiwidXJsIjpbXSwiX3ByZXZpb3VzIjp7InVybCI6Imh0dHA6XC9cLzEyNy4wLjAuMTo4MDAwXC9wcm9qZWN0c1wvY3JlYXRlIiwicm91dGUiOiJwcm9qZWN0cy5jcmVhdGUifSwiX2ZsYXNoIjp7Im9sZCI6W10sIm5ldyI6W119LCJsb2dpbl93ZWJfNTliYTM2YWRkYzJiMmY5NDAxNTgwZjAxNGM3ZjU4ZWE0ZTMwOTg5ZCI6MSwicGFzc3dvcmRfaGFzaF93ZWIiOiJjZTNmYmE4YmYwMmY2MjhhNTJkZjk4NDRjNzU3ZGUxOTE1YzQ4NzRhMDk3Yzg1YjE4ZGYxMjgzM2VlYmU4YTdhIn0=', 1792732801);
+('4bbh2UTL0c14QaqAlUiQQaEaQ2nHPEO5869O0zgm', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.23.12 Chrome/148.0.7778.280 Electron/42.10.0 Safari/537.36', 'eyJfdG9rZW4iOiJDZjJhb1FFVXBscjBQRmJQVDF3aDRnejdVOVB4MGZ5VXExWkU5SjhKIiwidXJsIjp7ImludGVuZGVkIjoiaHR0cDpcL1wvbG9jYWxob3N0OjgwMDBcL3Byb2plY3RzIn0sIl9wcmV2aW91cyI6eyJ1cmwiOiJodHRwOlwvXC9sb2NhbGhvc3Q6ODAwMFwvbG9naW4iLCJyb3V0ZSI6ImxvZ2luIn0sIl9mbGFzaCI6eyJvbGQiOltdLCJuZXciOltdfX0=', 1792804543);
 
 -- --------------------------------------------------------
 
@@ -1622,7 +1623,7 @@ ALTER TABLE `man_power_transactions`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT untuk tabel `payments`
